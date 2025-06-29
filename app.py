@@ -63,6 +63,16 @@ if 'model' not in st.session_state:
 if 'max_tokens' not in st.session_state:
     st.session_state.max_tokens = 2000
 
+def validate_api_key(api_key):
+    """Validate API key format"""
+    if not api_key:
+        return False, "API key is empty"
+    if not api_key.startswith("sk-"):
+        return False, "API key should start with 'sk-'"
+    if len(api_key) < 20:
+        return False, "API key seems too short"
+    return True, "Valid"
+
 def call_openrouter_api(prompt, api_key, model, max_tokens):
     """Call OpenRouter API with the given parameters"""
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -89,14 +99,43 @@ def call_openrouter_api(prompt, api_key, model, max_tokens):
     
     try:
         response = requests.post(url, headers=headers, json=data, timeout=60)
-        response.raise_for_status()
+        
+        if response.status_code == 401:
+            st.error("❌ **Authentication Error**: Invalid API key. Please check your OpenRouter API key in the sidebar.")
+            st.info("💡 **Get your API key**: Visit [openrouter.ai/keys](https://openrouter.ai/keys) to get a valid API key.")
+            return None
+        elif response.status_code == 403:
+            st.error("❌ **Access Denied**: Your API key doesn't have permission to use this model or service.")
+            return None
+        elif response.status_code == 429:
+            st.error("❌ **Rate Limit Exceeded**: Too many requests. Please wait a few minutes and try again.")
+            return None
+        elif response.status_code == 400:
+            error_data = response.json()
+            error_msg = error_data.get('error', {}).get('message', 'Bad request')
+            st.error(f"❌ **Bad Request**: {error_msg}")
+            return None
+        elif response.status_code != 200:
+            st.error(f"❌ **API Error**: HTTP {response.status_code} - {response.reason}")
+            return None
+            
         result = response.json()
         return result['choices'][0]['message']['content']
+        
+    except requests.exceptions.Timeout:
+        st.error("❌ **Timeout Error**: Request took too long. Please try again.")
+        return None
+    except requests.exceptions.ConnectionError:
+        st.error("❌ **Connection Error**: Unable to connect to OpenRouter. Please check your internet connection.")
+        return None
     except requests.exceptions.RequestException as e:
-        st.error(f"API Error: {str(e)}")
+        st.error(f"❌ **Network Error**: {str(e)}")
         return None
     except KeyError as e:
-        st.error(f"Unexpected response format: {str(e)}")
+        st.error(f"❌ **Response Error**: Unexpected response format from API.")
+        return None
+    except Exception as e:
+        st.error(f"❌ **Unexpected Error**: {str(e)}")
         return None
 
 def build_essay_prompt(essay_prompt, essay_type, word_count, college_level, writing_style, personal_details, additional_requirements):
@@ -259,6 +298,14 @@ def main():
         )
         st.session_state.api_key = api_key
         
+        # Validate API key
+        if api_key:
+            is_valid, message = validate_api_key(api_key)
+            if is_valid:
+                st.success("✅ API key format looks good")
+            else:
+                st.error(f"❌ {message}")
+        
         # Model selection
         model = st.selectbox(
             "AI Model",
@@ -300,6 +347,25 @@ def main():
         
         # Link to get API key
         st.markdown("[Get OpenRouter API Key](https://openrouter.ai/keys)")
+        
+        # Troubleshooting section
+        with st.expander("🔧 Troubleshooting"):
+            st.markdown("""
+            **Common Issues:**
+            
+            **401 Unauthorized Error:**
+            - Make sure your API key starts with `sk-`
+            - Get a fresh API key from [openrouter.ai/keys](https://openrouter.ai/keys)
+            - Check that you have credits in your OpenRouter account
+            
+            **Rate Limit Error:**
+            - Wait a few minutes and try again
+            - Check your usage limits on OpenRouter
+            
+            **Model Not Available:**
+            - Try a different AI model
+            - Some models may be temporarily unavailable
+            """)
     
     # Main content
     tab1, tab2 = st.tabs(["🎓 Essay Generator", "✏️ Essay Editor"])
@@ -414,36 +480,43 @@ def main():
             # Generate button
             if st.button("🚀 Generate Admission Essay", type="primary"):
                 if not api_key:
-                    st.error("Please enter your OpenRouter API key in the sidebar.")
+                    st.error("❌ **Missing API Key**: Please enter your OpenRouter API key in the sidebar.")
+                    st.info("💡 **Get your API key**: Visit [openrouter.ai/keys](https://openrouter.ai/keys)")
                 elif not essay_prompt:
-                    st.error("Please enter the essay prompt.")
+                    st.error("❌ **Missing Prompt**: Please enter the essay prompt.")
                 else:
-                    with st.spinner("Generating your college admission essay..."):
-                        prompt = build_essay_prompt(
-                            essay_prompt, essay_type, word_count, 
-                            college_level, writing_style, personal_details, 
-                            additional_requirements
-                        )
-                        
-                        result = call_openrouter_api(api_key, model, max_tokens, prompt)
-                        
-                        if result:
-                            st.success("Essay generated successfully!")
-                            
-                            # Display the essay
-                            st.markdown("### Generated College Essay")
-                            st.markdown('<div class="essay-box">', unsafe_allow_html=True)
-                            st.write(result)
-                            st.markdown('</div>', unsafe_allow_html=True)
-                            
-                            # Download button
-                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                            st.download_button(
-                                label="📥 Download Essay",
-                                data=result,
-                                file_name=f"college_essay_{timestamp}.txt",
-                                mime="text/plain"
+                    # Validate API key format
+                    is_valid, message = validate_api_key(api_key)
+                    if not is_valid:
+                        st.error(f"❌ **Invalid API Key**: {message}")
+                        st.info("💡 **Get your API key**: Visit [openrouter.ai/keys](https://openrouter.ai/keys)")
+                    else:
+                        with st.spinner("Generating your college admission essay..."):
+                            prompt = build_essay_prompt(
+                                essay_prompt, essay_type, word_count, 
+                                college_level, writing_style, personal_details, 
+                                additional_requirements
                             )
+                            
+                            result = call_openrouter_api(api_key, model, max_tokens, prompt)
+                            
+                            if result:
+                                st.success("✅ Essay generated successfully!")
+                                
+                                # Display the essay
+                                st.markdown("### Generated College Essay")
+                                st.markdown('<div class="essay-box">', unsafe_allow_html=True)
+                                st.write(result)
+                                st.markdown('</div>', unsafe_allow_html=True)
+                                
+                                # Download button
+                                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                                st.download_button(
+                                    label="📥 Download Essay",
+                                    data=result,
+                                    file_name=f"college_essay_{timestamp}.txt",
+                                    mime="text/plain"
+                                )
     
     with tab2:
         st.header("Edit & Improve Your Essay")
@@ -512,35 +585,42 @@ def main():
             # Analyze button
             if st.button("🔍 Analyze & Improve Essay", type="primary"):
                 if not api_key:
-                    st.error("Please enter your OpenRouter API key in the sidebar.")
+                    st.error("❌ **Missing API Key**: Please enter your OpenRouter API key in the sidebar.")
+                    st.info("💡 **Get your API key**: Visit [openrouter.ai/keys](https://openrouter.ai/keys)")
                 elif not essay_text:
-                    st.error("Please enter your essay.")
+                    st.error("❌ **Missing Essay**: Please enter your essay.")
                 else:
-                    with st.spinner("Analyzing your essay..."):
-                        prompt = build_analysis_prompt(
-                            essay_text, focus_area, analysis_college_level, 
-                            specific_instructions
-                        )
-                        
-                        result = call_openrouter_api(api_key, model, max_tokens, prompt)
-                        
-                        if result:
-                            st.success("Essay analysis completed!")
-                            
-                            # Display the analysis
-                            st.markdown("### Essay Analysis & Suggestions")
-                            st.markdown('<div class="grade-box">', unsafe_allow_html=True)
-                            st.write(result)
-                            st.markdown('</div>', unsafe_allow_html=True)
-                            
-                            # Download button
-                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                            st.download_button(
-                                label="📥 Download Analysis",
-                                data=result,
-                                file_name=f"essay_analysis_{timestamp}.txt",
-                                mime="text/plain"
+                    # Validate API key format
+                    is_valid, message = validate_api_key(api_key)
+                    if not is_valid:
+                        st.error(f"❌ **Invalid API Key**: {message}")
+                        st.info("💡 **Get your API key**: Visit [openrouter.ai/keys](https://openrouter.ai/keys)")
+                    else:
+                        with st.spinner("Analyzing your essay..."):
+                            prompt = build_analysis_prompt(
+                                essay_text, focus_area, analysis_college_level, 
+                                specific_instructions
                             )
+                            
+                            result = call_openrouter_api(api_key, model, max_tokens, prompt)
+                            
+                            if result:
+                                st.success("✅ Essay analysis completed!")
+                                
+                                # Display the analysis
+                                st.markdown("### Essay Analysis & Suggestions")
+                                st.markdown('<div class="grade-box">', unsafe_allow_html=True)
+                                st.write(result)
+                                st.markdown('</div>', unsafe_allow_html=True)
+                                
+                                # Download button
+                                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                                st.download_button(
+                                    label="📥 Download Analysis",
+                                    data=result,
+                                    file_name=f"essay_analysis_{timestamp}.txt",
+                                    mime="text/plain"
+                                )
     
     # Footer
     st.markdown("---")

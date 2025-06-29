@@ -202,12 +202,7 @@ college-essay-ai/
 ├── app.py                 # Main Streamlit application
 ├── requirements.txt       # Python dependencies
 ├── setup_streamlit.bat    # Windows setup script
-├── README.md             # This file
-├── index.html            # Original web app (alternative)
-├── script.js             # Original web app (alternative)
-├── styles.css            # Original web app (alternative)
-├── server.js             # Original web app (alternative)
-└── package.json          # Original web app (alternative)
+└── README.md             # This file
 ```
 
 ### Running in Development
