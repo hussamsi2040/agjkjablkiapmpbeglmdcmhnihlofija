@@ -1,0 +1,8 @@
+{
+    "appName": {
+        "message": "YoutubeDigest: ChatGPT로 요약"
+    },
+    "appDesc": {
+        "message": "ChatGPT를 사용하여 YouTube 동영상 요약 생성"
+    }
+}

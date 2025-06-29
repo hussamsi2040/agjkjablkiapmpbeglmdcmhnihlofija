@@ -1,0 +1,8 @@
+{
+    "appName": {
+        "message": "YoutubeDigest: összefoglalni a ChatGPT-vel"
+    },
+    "appDesc": {
+        "message": "Összefoglalókat generál a youtube-videókhoz a ChatGPT használatával"
+    }
+}

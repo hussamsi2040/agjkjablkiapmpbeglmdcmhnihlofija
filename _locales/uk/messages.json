@@ -1,0 +1,8 @@
+{
+    "appName": {
+        "message": "YoutubeDigest: summarize with ChatGPT"
+    },
+    "appDesc": {
+        "message": "Створює підсумки для відео YouTube за допомогою ChatGPT"
+    }
+}
