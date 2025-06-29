@@ -1,12 +1,13 @@
 {
   "name": "college-essay-ai",
   "version": "1.0.0",
-  "description": "AI-powered college admission essay generator and editor",
+  "description": "AI-powered college admission essay generator and editor with backend API",
   "main": "index.html",
   "scripts": {
-    "dev": "serve .",
+    "dev": "vercel dev",
     "build": "echo 'Static site - no build required'",
-    "start": "serve ."
+    "start": "vercel dev",
+    "deploy": "vercel --prod"
   },
   "keywords": [
     "college",
@@ -14,14 +15,20 @@
     "ai",
     "admissions",
     "education",
-    "writing"
+    "writing",
+    "api",
+    "vercel",
+    "serverless"
   ],
   "author": "CollegeEssayAI",
   "license": "MIT",
   "devDependencies": {
-    "serve": "^14.2.0"
+    "vercel": "^32.0.0"
+  },
+  "dependencies": {
+    "openai": "^4.20.0"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   }
 } 

@@ -25,6 +25,7 @@ const elements = {
     generatorResult: document.getElementById('generatorResult'),
     generatedEssay: document.getElementById('generatedEssay'),
     downloadEssay: document.getElementById('downloadEssay'),
+    copyEssay: document.getElementById('copyEssay'),
     
     // Editor
     essayText: document.getElementById('essayText'),
@@ -35,12 +36,14 @@ const elements = {
     editorResult: document.getElementById('editorResult'),
     analysisResult: document.getElementById('analysisResult'),
     downloadAnalysis: document.getElementById('downloadAnalysis'),
+    copyAnalysis: document.getElementById('copyAnalysis'),
     
     // UI
     loadingOverlay: document.getElementById('loadingOverlay'),
     loadingText: document.getElementById('loadingText'),
     errorModal: document.getElementById('errorModal'),
     errorMessage: document.getElementById('errorMessage'),
+    helpModal: document.getElementById('helpModal'),
     
     // Counters
     promptCounter: document.getElementById('promptCounter'),
@@ -72,15 +75,26 @@ function initializeApp() {
     elements.analyzeBtn.addEventListener('click', analyzeEssay);
     elements.downloadEssay.addEventListener('click', () => downloadContent('essay'));
     elements.downloadAnalysis.addEventListener('click', () => downloadContent('analysis'));
+    elements.copyEssay.addEventListener('click', () => copyToClipboard('essay'));
+    elements.copyAnalysis.addEventListener('click', () => copyToClipboard('analysis'));
     
     // Modal close
-    document.querySelector('.close').addEventListener('click', closeErrorModal);
-    elements.errorModal.addEventListener('click', (e) => {
-        if (e.target === elements.errorModal) closeErrorModal();
+    document.querySelectorAll('.close').forEach(closeBtn => {
+        closeBtn.addEventListener('click', closeAllModals);
+    });
+    
+    // Modal background click
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeAllModals();
+        });
     });
     
     // Load saved settings
     loadSettings();
+    
+    // Check API health
+    checkApiHealth();
 }
 
 // Tab switching
@@ -162,63 +176,38 @@ function validateApiKey(apiKey) {
     return { valid: true, message: 'Valid' };
 }
 
-// API call
-async function callOpenRouterAPI(prompt, apiKey, model, maxTokens) {
-    const url = 'https://openrouter.ai/api/v1/chat/completions';
-    
-    // Estimate input tokens
-    const estimatedInputTokens = Math.ceil(prompt.length / 4);
-    if (estimatedInputTokens > 100000) {
-        showWarning('Large input detected - may approach context limits');
+// API health check
+async function checkApiHealth() {
+    try {
+        const response = await fetch('/api/health');
+        if (!response.ok) {
+            console.warn('API health check failed');
+        }
+    } catch (error) {
+        console.warn('API health check error:', error);
     }
-    
-    const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': window.location.origin,
-        'X-Title': 'CollegeEssayAI'
-    };
-    
-    const data = {
-        model: model,
-        messages: [
-            {
-                role: 'user',
-                content: prompt
-            }
-        ],
-        max_tokens: parseInt(maxTokens),
-        temperature: 0.7,
-        stream: false
-    };
+}
+
+// Backend API call
+async function callBackendAPI(endpoint, data) {
+    const url = `/api/${endpoint}`;
     
     try {
         const response = await fetch(url, {
             method: 'POST',
-            headers: headers,
+            headers: {
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify(data)
         });
         
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            const errorMsg = errorData.error?.message || `HTTP ${response.status}`;
-            
-            switch (response.status) {
-                case 401:
-                    throw new Error('Invalid API key. Please check your OpenRouter API key.');
-                case 403:
-                    throw new Error('Access denied. Your API key doesn\'t have permission to use this model.');
-                case 413:
-                    throw new Error('Request too large. Your input exceeds the model\'s context limit.');
-                case 429:
-                    throw new Error('Rate limit exceeded. Please wait a few minutes and try again.');
-                default:
-                    throw new Error(`API Error: ${errorMsg}`);
-            }
+            throw new Error(errorData.error || `HTTP ${response.status}`);
         }
         
         const result = await response.json();
-        return result.choices[0].message.content;
+        return result.content;
         
     } catch (error) {
         throw error;
@@ -252,13 +241,13 @@ async function generateEssay() {
         // Build prompt
         const prompt = buildEssayPrompt();
         
-        // Call API
-        const result = await callOpenRouterAPI(
-            prompt,
-            apiKey,
-            elements.model.value,
-            elements.maxTokens.value
-        );
+        // Call backend API
+        const result = await callBackendAPI('generate-essay', {
+            prompt: prompt,
+            apiKey: apiKey,
+            model: elements.model.value,
+            maxTokens: parseInt(elements.maxTokens.value)
+        });
         
         // Display result
         elements.generatedEssay.textContent = result;
@@ -301,13 +290,13 @@ async function analyzeEssay() {
         // Build prompt
         const prompt = buildAnalysisPrompt();
         
-        // Call API
-        const result = await callOpenRouterAPI(
-            prompt,
-            apiKey,
-            elements.model.value,
-            elements.maxTokens.value
-        );
+        // Call backend API
+        const result = await callBackendAPI('analyze-essay', {
+            prompt: prompt,
+            apiKey: apiKey,
+            model: elements.model.value,
+            maxTokens: parseInt(elements.maxTokens.value)
+        });
         
         // Display result
         elements.analysisResult.textContent = result;
@@ -489,6 +478,46 @@ function downloadContent(type) {
     URL.revokeObjectURL(url);
 }
 
+// Copy to clipboard functionality
+async function copyToClipboard(type) {
+    let content;
+    
+    if (type === 'essay') {
+        content = elements.generatedEssay.textContent;
+    } else {
+        content = elements.analysisResult.textContent;
+    }
+    
+    try {
+        await navigator.clipboard.writeText(content);
+        showSuccess('Copied to clipboard!');
+    } catch (error) {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = content;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showSuccess('Copied to clipboard!');
+    }
+}
+
+// Modal functions
+function showHelp() {
+    elements.helpModal.style.display = 'flex';
+}
+
+function showPrivacy() {
+    showError('Privacy Policy: This app does not store your essays or API keys. All data is processed locally and through secure API calls.');
+}
+
+function closeAllModals() {
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.style.display = 'none';
+    });
+}
+
 // UI helpers
 function showLoading(text) {
     elements.loadingText.textContent = text;
@@ -504,11 +533,44 @@ function showError(message) {
     elements.errorModal.style.display = 'flex';
 }
 
-function closeErrorModal() {
-    elements.errorModal.style.display = 'none';
+function showSuccess(message) {
+    // Create a temporary success notification
+    const notification = document.createElement('div');
+    notification.className = 'success-notification';
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--success-gradient);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: var(--shadow-md);
+        z-index: 10000;
+        animation: slideInRight 0.3s ease-out;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease-out';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 2000);
 }
 
-function showWarning(message) {
-    // Simple alert for warnings - could be enhanced with a toast notification
-    console.warn(message);
-} 
+// Add CSS animations for notifications
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style); 

@@ -1,6 +1,20 @@
 # CollegeEssayAI 🎓
 
-A modern web application for generating and analyzing college admission essays using AI. Built with HTML, CSS, and JavaScript, designed for easy deployment on Vercel.
+A modern web application for generating and analyzing college admission essays using AI. Built with HTML, CSS, JavaScript frontend and Node.js serverless backend, designed for easy deployment on Vercel.
+
+## 🏗️ Architecture
+
+### Frontend
+- **HTML5** - Semantic markup and structure
+- **CSS3** - Modern styling with gradients, animations, and responsive design
+- **JavaScript (ES6+)** - Interactive functionality and API integration
+- **Font Awesome** - Beautiful icons throughout the interface
+
+### Backend (Serverless API)
+- **Vercel Functions** - Serverless API endpoints
+- **Node.js** - Runtime environment
+- **OpenRouter API** - AI model integration
+- **CORS** - Cross-origin resource sharing support
 
 ## ✨ Features
 
@@ -11,11 +25,13 @@ A modern web application for generating and analyzing college admission essays u
 - **Writing Style Options**: Authentic, academic, creative, professional, conversational
 - **Real-time Token Estimation**: Monitor context usage and stay within limits
 - **Download Results**: Save essays and analysis as text files
+- **Copy to Clipboard**: Quick copying of generated content
 - **Responsive Design**: Works perfectly on desktop and mobile devices
+- **Secure Backend**: API calls handled through secure serverless functions
 
 ## 🚀 Quick Deploy to Vercel
 
-### Option 1: Deploy with Vercel CLI
+### Option 1: Deploy with Vercel CLI (Recommended)
 
 1. **Install Vercel CLI**:
    ```bash
@@ -27,13 +43,15 @@ A modern web application for generating and analyzing college admission essays u
    vercel
    ```
 
+3. **Follow prompts** and your app will be live with both frontend and backend!
+
 ### Option 2: Deploy via GitHub
 
 1. **Fork this repository** to your GitHub account
 2. **Go to [vercel.com](https://vercel.com)** and sign up/login
 3. **Click "New Project"**
 4. **Import your forked repository**
-5. **Deploy** - Vercel will automatically detect it's a static site
+5. **Deploy** - Vercel will automatically detect the serverless functions
 
 ### Option 3: Deploy via Vercel Dashboard
 
@@ -93,6 +111,34 @@ A modern web application for generating and analyzing college admission essays u
 - **Recommended Essay Length**: Up to 50K characters
 - **Token Estimation**: ~1 token per 4 characters
 
+## 🏗️ Backend API Endpoints
+
+### `/api/generate-essay`
+- **Method**: POST
+- **Purpose**: Generate college admission essays
+- **Body**: `{ prompt, apiKey, model, maxTokens }`
+- **Response**: `{ success: true, content: string, usage: object }`
+
+### `/api/analyze-essay`
+- **Method**: POST
+- **Purpose**: Analyze and provide feedback on essays
+- **Body**: `{ prompt, apiKey, model, maxTokens }`
+- **Response**: `{ success: true, content: string, usage: object }`
+
+### `/api/health`
+- **Method**: GET
+- **Purpose**: Health check endpoint
+- **Response**: `{ status: 'healthy', timestamp: string, uptime: number }`
+
+## 🔒 Security Features
+
+- **API Key Validation**: Server-side validation of OpenRouter API keys
+- **Input Sanitization**: All inputs are validated and sanitized
+- **CORS Protection**: Proper CORS headers for secure cross-origin requests
+- **Error Handling**: Comprehensive error handling without exposing sensitive data
+- **Rate Limiting**: Built-in protection against abuse
+- **No Data Storage**: Your essays and API keys are never stored
+
 ## 🎨 Essay Types Supported
 
 - Personal Statement
@@ -123,11 +169,19 @@ A modern web application for generating and analyzing college admission essays u
 
 ## 🔧 Technical Details
 
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **API**: OpenRouter (supports multiple AI providers)
-- **Deployment**: Vercel (static hosting)
-- **Security**: HTTPS, CORS headers, XSS protection
-- **Responsive**: Mobile-first design
+### Frontend
+- **Framework**: Vanilla JavaScript (no framework dependencies)
+- **Styling**: CSS3 with CSS Grid and Flexbox
+- **Icons**: Font Awesome 6.4.0
+- **Fonts**: Inter (Google Fonts)
+- **Responsive**: Mobile-first design approach
+
+### Backend
+- **Runtime**: Node.js 18+
+- **Platform**: Vercel Serverless Functions
+- **API**: OpenRouter integration
+- **Security**: CORS, input validation, error handling
+- **Performance**: Cold start optimization
 
 ## 🛠️ Local Development
 
@@ -137,18 +191,17 @@ A modern web application for generating and analyzing college admission essays u
    cd college-essay-ai
    ```
 
-2. **Open in browser**:
+2. **Install dependencies**:
    ```bash
-   # Using Python
-   python -m http.server 8000
-   
-   # Using Node.js
-   npx serve .
-   
-   # Or simply open index.html in your browser
+   npm install
    ```
 
-3. **Access at**: `http://localhost:8000`
+3. **Start development server**:
+   ```bash
+   npm run dev
+   ```
+
+4. **Access at**: `http://localhost:3000`
 
 ## 🚨 Troubleshooting
 
@@ -173,6 +226,11 @@ A modern web application for generating and analyzing college admission essays u
 - Keep inputs under 50K characters for best results
 - Monitor the token estimates shown in the interface
 
+**Backend API Errors**:
+- Check the `/api/health` endpoint for backend status
+- Ensure your Vercel deployment includes the `/api` folder
+- Check Vercel function logs for detailed error information
+
 ## 📱 Browser Support
 
 - Chrome 80+
@@ -183,9 +241,10 @@ A modern web application for generating and analyzing college admission essays u
 ## 🔒 Privacy & Security
 
 - **No data storage**: Your essays and API keys are not stored on our servers
-- **Client-side processing**: All processing happens in your browser
+- **Client-side processing**: Settings are saved locally in your browser
 - **Secure API calls**: HTTPS encryption for all API requests
 - **Local storage**: Settings are saved locally in your browser
+- **Serverless security**: Vercel provides enterprise-grade security
 
 ## 📄 License
 
@@ -202,7 +261,21 @@ If you encounter any issues:
 1. Check the troubleshooting section above
 2. Verify your API key is working
 3. Try a different AI model
-4. Contact OpenRouter support for API issues
+4. Check the `/api/health` endpoint
+5. Contact OpenRouter support for API issues
+
+## 🚀 Deployment Checklist
+
+Before deploying to production:
+
+- [ ] Test all API endpoints locally
+- [ ] Verify CORS settings
+- [ ] Check error handling
+- [ ] Test with different API keys
+- [ ] Validate input sanitization
+- [ ] Test responsive design
+- [ ] Verify download functionality
+- [ ] Check copy to clipboard feature
 
 ---
 
