@@ -515,7 +515,7 @@ export default function Home() {
             <ul>
               <li>Be specific and personal in your prompts</li>
               <li>Include relevant details about your experiences</li>
-              <li>Mention the college or program you're applying to</li>
+              <li>Mention the college or program you&apos;re applying to</li>
               <li>Specify any particular requirements or constraints</li>
               <li>Always review and edit generated content</li>
             </ul>
