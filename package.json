@@ -1,13 +1,13 @@
 {
   "name": "college-essay-ai",
   "version": "1.0.0",
-  "description": "AI-powered college admission essay generator and editor with backend API",
-  "main": "index.html",
+  "description": "AI-powered college admission essay generator and editor built with Next.js",
+  "private": true,
   "scripts": {
-    "dev": "vercel dev",
-    "build": "echo 'Static site - no build required'",
-    "start": "vercel dev",
-    "deploy": "vercel --prod"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "keywords": [
     "college",
@@ -16,17 +16,26 @@
     "admissions",
     "education",
     "writing",
-    "api",
-    "vercel",
-    "serverless"
+    "nextjs",
+    "react",
+    "openai",
+    "openrouter"
   ],
   "author": "CollegeEssayAI",
   "license": "MIT",
-  "devDependencies": {
-    "vercel": "^32.0.0"
-  },
   "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
     "openai": "^4.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0",
+    "typescript": "^5.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
