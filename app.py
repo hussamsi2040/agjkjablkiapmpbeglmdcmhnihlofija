@@ -311,14 +311,26 @@ def main():
             "AI Model",
             options=[
                 "openai/o4-mini",
-                "openai/gpt-4",
+                "openai/gpt-4o-mini",
+                "openai/gpt-4o",
                 "openai/gpt-4-turbo",
                 "openai/gpt-3.5-turbo",
-                "anthropic/claude-3-opus",
-                "anthropic/claude-3-sonnet",
+                "anthropic/claude-3-5-sonnet-20241022",
+                "anthropic/claude-3-opus-20240229",
                 "google/gemini-pro",
                 "meta-llama/llama-3.1-70b-instruct"
             ],
+            format_func=lambda x: {
+                "openai/o4-mini": "o4-mini (OpenAI) - Fast & Efficient ⭐",
+                "openai/gpt-4o-mini": "GPT-4o Mini (OpenAI) - Fast & Cost-effective",
+                "openai/gpt-4o": "GPT-4o (OpenAI) - Most Capable",
+                "openai/gpt-4-turbo": "GPT-4 Turbo (OpenAI) - Fast & Reliable",
+                "openai/gpt-3.5-turbo": "GPT-3.5 Turbo (OpenAI) - Good Balance",
+                "anthropic/claude-3-5-sonnet-20241022": "Claude 3.5 Sonnet (Anthropic) - Excellent",
+                "anthropic/claude-3-opus-20240229": "Claude 3 Opus (Anthropic) - Most Capable",
+                "google/gemini-pro": "Gemini Pro (Google) - Creative Tasks",
+                "meta-llama/llama-3.1-70b-instruct": "Llama 3.1 70B (Meta) - Open Source"
+            }[x],
             index=0,
             help="Choose your preferred AI model"
         )
@@ -358,13 +370,19 @@ def main():
             - Get a fresh API key from [openrouter.ai/keys](https://openrouter.ai/keys)
             - Check that you have credits in your OpenRouter account
             
+            **Model Not Working:**
+            - Use the exact model names from the dropdown
+            - `openai/o4-mini` is the recommended fast model
+            - Some models may be temporarily unavailable
+            
             **Rate Limit Error:**
             - Wait a few minutes and try again
             - Check your usage limits on OpenRouter
             
-            **Model Not Available:**
-            - Try a different AI model
-            - Some models may be temporarily unavailable
+            **API Key Issues:**
+            - Copy the entire key (no extra spaces)
+            - Make sure you're using the latest key from OpenRouter
+            - Check your account has sufficient credits
             """)
     
     # Main content
