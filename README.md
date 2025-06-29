@@ -1,255 +1,209 @@
-# CollegeEssayAI - AI College Admission Essay Generator & Editor
+# CollegeEssayAI 🎓
 
-A specialized Streamlit application that generates and improves college admission essays using OpenRouter API. Perfect for students applying to universities and colleges!
+A modern web application for generating and analyzing college admission essays using AI. Built with HTML, CSS, and JavaScript, designed for easy deployment on Vercel.
 
-## Features
+## ✨ Features
 
-### College Essay Generation
-- **Personal Statements**: Authentic personal statements that showcase your unique story
-- **Supplemental Essays**: Essays tailored to specific college prompts
-- **Common App Essays**: Standard Common Application essays
-- **Why This College**: Essays explaining your interest in specific institutions
-- **Why This Major**: Essays about your academic interests and preparation
-- **Extracurricular Essays**: Essays about leadership and activities
-- **Challenge Essays**: Essays about overcoming obstacles
-- **Community Service**: Essays about social impact and service
+- **Essay Generation**: Create compelling college admission essays from prompts
+- **Essay Analysis**: Get detailed feedback and improvement suggestions
+- **Multiple Essay Types**: Personal statements, supplemental essays, Common App, etc.
+- **College Level Targeting**: Ivy League, Top 20, Top 50, and more
+- **Writing Style Options**: Authentic, academic, creative, professional, conversational
+- **Real-time Token Estimation**: Monitor context usage and stay within limits
+- **Download Results**: Save essays and analysis as text files
+- **Responsive Design**: Works perfectly on desktop and mobile devices
 
-### Essay Types Supported
-- **Personal Statement** - Your main college essay
-- **Supplemental Essay** - College-specific prompts
-- **Common App Essay** - Standard application essay
-- **Why This College** - College-specific interest
-- **Why This Major** - Academic interest explanation
-- **Extracurricular Activity** - Leadership and activities
-- **Challenge/Obstacle** - Overcoming difficulties
-- **Community Service** - Social impact work
+## 🚀 Quick Deploy to Vercel
 
-### Target College Levels
-- **Ivy League** - Harvard, Yale, Princeton, etc.
-- **Top 20 Universities** - Stanford, MIT, Duke, etc.
-- **Top 50 Universities** - Major research universities
-- **State Flagship** - University of [State] schools
-- **Liberal Arts Colleges** - Small, focused institutions
-- **Community College** - Two-year institutions
+### Option 1: Deploy with Vercel CLI
 
-### Essay Editing & Analysis
-- **Comprehensive Review** - Full essay analysis
-- **Structure & Flow** - Organization and coherence
-- **Content & Story** - Narrative and storytelling
-- **Grammar & Style** - Writing mechanics
-- **Admissions Appeal** - College readiness assessment
-- **Authenticity & Voice** - Personal voice evaluation
-
-### AI Models Available
-- **o4-mini** (OpenAI) - Fast & efficient, perfect for essays ⭐ **Recommended**
-- **GPT-4** (OpenAI) - Most capable model for complex tasks
-- **GPT-4 Turbo** (OpenAI) - Faster and more cost-effective
-- **GPT-3.5 Turbo** (OpenAI) - Good balance of speed and quality
-- **Claude 3 Opus** (Anthropic) - Excellent for analysis and writing
-- **Claude 3 Sonnet** (Anthropic) - Fast and reliable
-- **Gemini Pro** (Google) - Good for creative tasks
-- **Llama 3.1 70B** (Meta) - Open source alternative
-
-### Key Benefits
-- **College-Focused**: Specifically designed for admission essays
-- **Multiple AI Models**: Choose from the best AI models available
-- **Pay-per-use**: Only pay for what you use
-- **Fast & Reliable**: Direct API integration with no browser dependencies
-- **Modern UI**: Clean, responsive Streamlit interface
-- **Export Options**: Download essays and analysis as text files
-- **Customizable**: Adjust model, tokens, and other settings
-- **Easy to Use**: Simple, intuitive interface
-
-## Setup Instructions
-
-### Prerequisites
-- [Python](https://python.org/) (version 3.8 or higher)
-- [OpenRouter API Key](https://openrouter.ai/keys) (free to get started)
-
-### Quick Setup (Windows)
-1. Double-click `setup_streamlit.bat` to automatically install dependencies
-2. Run `streamlit run app.py` to start the app
-3. The app will open in your browser automatically
-4. Enter your OpenRouter API key in the sidebar and start generating!
-
-### Manual Setup
-1. Install Python dependencies:
+1. **Install Vercel CLI**:
    ```bash
-   pip install -r requirements.txt
+   npm i -g vercel
    ```
 
-2. Start the Streamlit app:
+2. **Deploy**:
    ```bash
-   streamlit run app.py
+   vercel
    ```
 
-3. The app will automatically open in your browser at:
+### Option 2: Deploy via GitHub
+
+1. **Fork this repository** to your GitHub account
+2. **Go to [vercel.com](https://vercel.com)** and sign up/login
+3. **Click "New Project"**
+4. **Import your forked repository**
+5. **Deploy** - Vercel will automatically detect it's a static site
+
+### Option 3: Deploy via Vercel Dashboard
+
+1. **Download the files** from this repository
+2. **Go to [vercel.com](https://vercel.com)** and sign up/login
+3. **Click "New Project"**
+4. **Upload the files** or drag and drop the folder
+5. **Deploy**
+
+## 🔑 Setup
+
+### 1. Get OpenRouter API Key
+
+1. Visit [openrouter.ai/keys](https://openrouter.ai/keys)
+2. Create an account and get your API key
+3. The key should start with `sk-`
+
+### 2. Configure the App
+
+1. Open the deployed app
+2. Enter your API key in the settings panel
+3. Choose your preferred AI model
+4. Set your desired max tokens (recommended: 2,000-4,000)
+
+## 🎯 How to Use
+
+### Generate an Essay
+
+1. **Enter the essay prompt** from your college application
+2. **Select essay type** (personal statement, supplemental, etc.)
+3. **Choose target college level** (Ivy League, Top 20, etc.)
+4. **Pick writing style** (authentic, academic, creative, etc.)
+5. **Add personal details** (optional but recommended)
+6. **Click "Generate Admission Essay"**
+
+### Analyze an Essay
+
+1. **Paste your existing essay** in the editor tab
+2. **Select focus area** (comprehensive, structure, content, etc.)
+3. **Choose target college level**
+4. **Add specific feedback requests** (optional)
+5. **Click "Analyze & Improve Essay"**
+
+## 🤖 Supported AI Models
+
+- **o4-mini** (OpenAI) - Fast & Efficient ⭐
+- **GPT-4o Mini** (OpenAI) - Fast & Cost-effective
+- **GPT-4o** (OpenAI) - Most Capable
+- **GPT-4 Turbo** (OpenAI) - Fast & Reliable
+- **Claude 3.5 Sonnet** (Anthropic) - Excellent
+- **Gemini Pro** (Google) - Creative Tasks
+
+## 📊 Model Limits
+
+- **Context Limit**: 128K tokens (input + output)
+- **Output Limit**: 16K tokens per response
+- **Recommended Essay Length**: Up to 50K characters
+- **Token Estimation**: ~1 token per 4 characters
+
+## 🎨 Essay Types Supported
+
+- Personal Statement
+- Supplemental Essay
+- Common App Essay
+- Why This College
+- Why This Major
+- Extracurricular Activity
+- Challenge/Obstacle
+- Community Service
+
+## 🏫 College Levels
+
+- Ivy League
+- Top 20 Universities
+- Top 50 Universities
+- State Flagship
+- Liberal Arts Colleges
+- Community College
+
+## 💡 Writing Styles
+
+- **Authentic & Personal**: Genuine, heartfelt voice
+- **Academic & Formal**: Scholarly, professional tone
+- **Creative & Narrative**: Storytelling, engaging style
+- **Professional & Mature**: Sophisticated, polished approach
+- **Conversational & Friendly**: Approachable, relatable tone
+
+## 🔧 Technical Details
+
+- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
+- **API**: OpenRouter (supports multiple AI providers)
+- **Deployment**: Vercel (static hosting)
+- **Security**: HTTPS, CORS headers, XSS protection
+- **Responsive**: Mobile-first design
+
+## 🛠️ Local Development
+
+1. **Clone the repository**:
+   ```bash
+   git clone <your-repo-url>
+   cd college-essay-ai
    ```
-   http://localhost:8501
+
+2. **Open in browser**:
+   ```bash
+   # Using Python
+   python -m http.server 8000
+   
+   # Using Node.js
+   npx serve .
+   
+   # Or simply open index.html in your browser
    ```
 
-4. **Important**: Get your API key from [openrouter.ai/keys](https://openrouter.ai/keys) and enter it in the sidebar
+3. **Access at**: `http://localhost:8000`
 
-## How to Use
-
-### Getting Started
-1. **Get an API Key**: Visit [openrouter.ai/keys](https://openrouter.ai/keys) and create a free account
-2. **Enter API Key**: Paste your API key in the sidebar
-3. **Choose Model**: Select your preferred AI model (o4-mini recommended)
-4. **Start Using**: Generate essays or improve existing ones!
-
-### Generating College Essays
-1. Go to the "🎓 Essay Generator" tab
-2. Paste the college essay prompt
-3. Select essay type (Personal Statement, Supplemental, etc.)
-4. Choose word count and target college level
-5. Add personal details and requirements (optional)
-6. Click "🚀 Generate Admission Essay"
-7. Wait for the AI to create your essay
-8. Download the result
-
-### Editing & Improving Essays
-1. Go to the "✏️ Essay Editor" tab
-2. Paste your existing essay
-3. Select focus area and target college level
-4. Add specific feedback requests (optional)
-5. Click "🔍 Analyze & Improve Essay"
-6. Review the detailed feedback and suggestions
-7. Download the analysis
-
-## College Essay Tips
-
-### What Makes a Great College Essay
-- **Authenticity**: Be genuine and true to yourself
-- **Specificity**: Use concrete examples and details
-- **Self-reflection**: Show personal growth and insight
-- **Unique perspective**: Share your unique story
-- **Strong voice**: Write in your authentic voice
-- **Good structure**: Clear introduction, body, and conclusion
-
-### Common Mistakes to Avoid
-- **Generic statements**: Avoid clichés and platitudes
-- **Trying to impress**: Focus on being authentic, not impressive
-- **Poor structure**: Ensure logical flow and organization
-- **Grammar errors**: Proofread carefully
-- **Too formal**: Write naturally, not like an academic paper
-- **Not personal enough**: Share your unique experiences
-
-## Pricing
-
-OpenRouter uses a pay-per-use model:
-- **Free Credits**: Get free credits when you sign up
-- **Low Cost**: Very affordable pricing (typically $0.01-0.10 per essay)
-- **No Subscription**: Only pay for what you use
-- **Multiple Models**: Choose the model that fits your budget and needs
-
-## Troubleshooting
-
-### "Please enter your OpenRouter API key" Error
-- **Solution**: Get an API key from [openrouter.ai/keys](https://openrouter.ai/keys)
-- **Alternative**: Make sure you've entered the key correctly in the sidebar
-
-### "Invalid API key" Error
-- **Solution**: Check your API key is correct and has credits
-- **Alternative**: Generate a new API key from OpenRouter
-
-### Network Errors
-- **Solution**: Check your internet connection
-- **Alternative**: Try refreshing the page
-
-### Rate Limit Errors
-- **Solution**: Wait a few minutes and try again
-- **Alternative**: Check your OpenRouter usage limits
+## 🚨 Troubleshooting
 
 ### Common Issues
-1. **API Key Missing**: Enter your OpenRouter API key in the sidebar
-2. **No Credits**: Add credits to your OpenRouter account
-3. **Model Unavailable**: Try a different AI model
-4. **Slow Response**: Some models are faster than others
 
-## Technical Details
+**401 Unauthorized Error**:
+- Make sure your API key starts with `sk-`
+- Get a fresh API key from [openrouter.ai/keys](https://openrouter.ai/keys)
+- Check that you have credits in your OpenRouter account
 
-### Architecture
-- **Frontend**: Streamlit web interface
-- **Backend**: Python with requests library
-- **API Integration**: Direct OpenRouter API integration
-- **Model Selection**: Multiple AI models available
+**Model Not Working**:
+- Use the exact model names from the dropdown
+- `openai/o4-mini` is the recommended fast model
+- Some models may be temporarily unavailable
 
-### OpenRouter Integration
-The app integrates with OpenRouter API to:
-1. Send requests to multiple AI models
-2. Handle authentication via API key
-3. Process responses efficiently
-4. Support various model configurations
+**Rate Limit Error**:
+- Wait a few minutes and try again
+- Check your usage limits on OpenRouter
 
-### Security
-- API keys are stored in session state (not persistent)
-- No data is sent to our servers
-- All communication is encrypted via HTTPS
-- Your API key is only used for OpenRouter requests
+**Large Input Warning**:
+- Break very long essays into smaller sections
+- Keep inputs under 50K characters for best results
+- Monitor the token estimates shown in the interface
 
-## Browser Compatibility
+## 📱 Browser Support
+
 - Chrome 80+
 - Firefox 75+
 - Safari 13+
 - Edge 80+
 
-## Development
+## 🔒 Privacy & Security
 
-### Project Structure
-```
-college-essay-ai/
-├── app.py                 # Main Streamlit application
-├── requirements.txt       # Python dependencies
-├── setup_streamlit.bat    # Windows setup script
-└── README.md             # This file
-```
+- **No data storage**: Your essays and API keys are not stored on our servers
+- **Client-side processing**: All processing happens in your browser
+- **Secure API calls**: HTTPS encryption for all API requests
+- **Local storage**: Settings are saved locally in your browser
 
-### Running in Development
-```bash
-streamlit run app.py
-```
+## 📄 License
 
-### Customization
-- Modify `app.py` to change AI behavior
-- Update the CSS in the app for custom styling
-- Add new AI models in the model selection
-- Customize prompts for different essay types
+This project is open source and available under the [MIT License](LICENSE).
 
-## Deployment
+## 🤝 Contributing
 
-### Local Deployment
-```bash
-streamlit run app.py
-```
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-### Cloud Deployment
-The app can be easily deployed to:
-- **Streamlit Cloud**: Free hosting for Streamlit apps
-- **Heroku**: Cloud platform deployment
-- **AWS/GCP/Azure**: Cloud provider deployment
-- **Railway**: Simple deployment platform
+## 📞 Support
 
-## License
+If you encounter any issues:
 
-MIT License - feel free to use, modify, and distribute as needed.
-
-## Support
-
-If you encounter issues:
 1. Check the troubleshooting section above
-2. Ensure you have a valid OpenRouter API key
-3. Try using a different AI model
-4. Check your OpenRouter account for credits
+2. Verify your API key is working
+3. Try a different AI model
+4. Contact OpenRouter support for API issues
 
-## Contributing
+---
 
-Contributions are welcome! Please feel free to submit issues and pull requests.
-
-## College Application Resources
-
-For additional help with college applications:
-- **Common App**: [commonapp.org](https://commonapp.org)
-- **College Board**: [collegeboard.org](https://collegeboard.org)
-- **FAFSA**: [fafsa.gov](https://fafsa.gov)
-- **College Essay Guy**: [collegeessayguy.com](https://collegeessayguy.com) 
+**Made with ❤️ for college applicants everywhere** 

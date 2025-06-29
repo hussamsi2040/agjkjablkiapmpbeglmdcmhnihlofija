@@ -1,0 +1,27 @@
+{
+  "name": "college-essay-ai",
+  "version": "1.0.0",
+  "description": "AI-powered college admission essay generator and editor",
+  "main": "index.html",
+  "scripts": {
+    "dev": "serve .",
+    "build": "echo 'Static site - no build required'",
+    "start": "serve ."
+  },
+  "keywords": [
+    "college",
+    "essay",
+    "ai",
+    "admissions",
+    "education",
+    "writing"
+  ],
+  "author": "CollegeEssayAI",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+} 

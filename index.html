@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CollegeEssayAI - AI College Admission Essay Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1><i class="fas fa-graduation-cap"></i> CollegeEssayAI</h1>
+            <p>AI-Powered College Admission Essay Generator & Editor</p>
+        </header>
+
+        <!-- Settings Panel -->
+        <div class="settings-panel">
+            <div class="setting-group">
+                <label for="apiKey">OpenRouter API Key *</label>
+                <input type="password" id="apiKey" placeholder="sk-..." required>
+                <small>Get your API key from <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a></small>
+            </div>
+
+            <div class="setting-group">
+                <label for="model">AI Model</label>
+                <select id="model">
+                    <option value="openai/o4-mini">o4-mini (OpenAI) - Fast & Efficient ⭐</option>
+                    <option value="openai/gpt-4o-mini">GPT-4o Mini (OpenAI) - Fast & Cost-effective</option>
+                    <option value="openai/gpt-4o">GPT-4o (OpenAI) - Most Capable</option>
+                    <option value="openai/gpt-4-turbo">GPT-4 Turbo (OpenAI) - Fast & Reliable</option>
+                    <option value="anthropic/claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (Anthropic) - Excellent</option>
+                    <option value="google/gemini-pro">Gemini Pro (Google) - Creative Tasks</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label for="maxTokens">Max Tokens: <span id="tokenValue">2000</span></label>
+                <input type="range" id="maxTokens" min="500" max="16000" value="2000" step="100">
+                <small>Maximum tokens for AI responses (max 16,000)</small>
+            </div>
+
+            <div class="info-box">
+                <h4><i class="fas fa-info-circle"></i> Model Limits</h4>
+                <ul>
+                    <li><strong>Context:</strong> Up to 128K tokens (input + output)</li>
+                    <li><strong>Output:</strong> Up to 16K tokens per response</li>
+                    <li><strong>Recommended:</strong> 2,000-4,000 tokens for essays</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="generator">
+                    <i class="fas fa-pen-fancy"></i> Essay Generator
+                </button>
+                <button class="tab-btn" data-tab="editor">
+                    <i class="fas fa-edit"></i> Essay Editor
+                </button>
+            </div>
+
+            <!-- Generator Tab -->
+            <div id="generator" class="tab-content active">
+                <div class="form-grid">
+                    <div class="form-section">
+                        <h3><i class="fas fa-file-alt"></i> Essay Details</h3>
+                        
+                        <div class="form-group">
+                            <label for="essayPrompt">College Essay Prompt *</label>
+                            <textarea id="essayPrompt" placeholder="Paste the college essay prompt here..." required></textarea>
+                            <div class="char-counter" id="promptCounter"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="essayType">Essay Type</label>
+                            <select id="essayType">
+                                <option value="personal-statement">Personal Statement</option>
+                                <option value="supplemental">Supplemental Essay</option>
+                                <option value="common-app">Common App Essay</option>
+                                <option value="why-this-college">Why This College</option>
+                                <option value="why-this-major">Why This Major</option>
+                                <option value="extracurricular">Extracurricular Activity</option>
+                                <option value="challenge">Challenge/Obstacle</option>
+                                <option value="community">Community Service</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="wordCount">Word Count</label>
+                            <select id="wordCount">
+                                <option value="250">250 words</option>
+                                <option value="500">500 words</option>
+                                <option value="650">650 words</option>
+                                <option value="750">750 words</option>
+                                <option value="1000">1000 words</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="collegeLevel">Target College Level</label>
+                            <select id="collegeLevel">
+                                <option value="ivy-league">Ivy League</option>
+                                <option value="top-20">Top 20 Universities</option>
+                                <option value="top-50">Top 50 Universities</option>
+                                <option value="state-flagship">State Flagship</option>
+                                <option value="liberal-arts">Liberal Arts Colleges</option>
+                                <option value="community-college">Community College</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="writingStyle">Writing Style</label>
+                            <select id="writingStyle">
+                                <option value="authentic">Authentic & Personal</option>
+                                <option value="academic">Academic & Formal</option>
+                                <option value="creative">Creative & Narrative</option>
+                                <option value="professional">Professional & Mature</option>
+                                <option value="conversational">Conversational & Friendly</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3><i class="fas fa-plus-circle"></i> Additional Information</h3>
+                        
+                        <div class="form-group">
+                            <label for="personalDetails">Personal Details (Optional)</label>
+                            <textarea id="personalDetails" placeholder="Include relevant experiences, achievements, challenges, or background..."></textarea>
+                            <div class="char-counter" id="detailsCounter"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="additionalRequirements">Additional Requirements (Optional)</label>
+                            <textarea id="additionalRequirements" placeholder="Any specific requirements, themes, or focus areas..."></textarea>
+                            <div class="char-counter" id="requirementsCounter"></div>
+                        </div>
+
+                        <button id="generateBtn" class="btn btn-primary">
+                            <i class="fas fa-rocket"></i> Generate Admission Essay
+                        </button>
+                    </div>
+                </div>
+
+                <div id="generatorResult" class="result-section" style="display: none;">
+                    <h3><i class="fas fa-check-circle"></i> Generated College Essay</h3>
+                    <div id="generatedEssay" class="essay-box"></div>
+                    <button id="downloadEssay" class="btn btn-secondary">
+                        <i class="fas fa-download"></i> Download Essay
+                    </button>
+                </div>
+            </div>
+
+            <!-- Editor Tab -->
+            <div id="editor" class="tab-content">
+                <div class="form-grid">
+                    <div class="form-section">
+                        <h3><i class="fas fa-search"></i> Essay Analysis</h3>
+                        
+                        <div class="form-group">
+                            <label for="essayText">Your Essay *</label>
+                            <textarea id="essayText" placeholder="Paste your college admission essay here..." required></textarea>
+                            <div class="char-counter" id="essayCounter"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="focusArea">Focus Area</label>
+                            <select id="focusArea">
+                                <option value="comprehensive">Comprehensive Review</option>
+                                <option value="structure">Structure & Flow</option>
+                                <option value="content">Content & Story</option>
+                                <option value="grammar">Grammar & Style</option>
+                                <option value="admissions">Admissions Appeal</option>
+                                <option value="authenticity">Authenticity & Voice</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="analysisCollegeLevel">Target College Level</label>
+                            <select id="analysisCollegeLevel">
+                                <option value="ivy-league">Ivy League</option>
+                                <option value="top-20">Top 20 Universities</option>
+                                <option value="top-50">Top 50 Universities</option>
+                                <option value="state-flagship">State Flagship</option>
+                                <option value="liberal-arts">Liberal Arts Colleges</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="specificInstructions">Specific Feedback Request (Optional)</label>
+                            <textarea id="specificInstructions" placeholder="What specific aspects would you like me to focus on?"></textarea>
+                            <div class="char-counter" id="instructionsCounter"></div>
+                        </div>
+
+                        <button id="analyzeBtn" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Analyze & Improve Essay
+                        </button>
+                    </div>
+                </div>
+
+                <div id="editorResult" class="result-section" style="display: none;">
+                    <h3><i class="fas fa-chart-line"></i> Essay Analysis & Suggestions</h3>
+                    <div id="analysisResult" class="grade-box"></div>
+                    <button id="downloadAnalysis" class="btn btn-secondary">
+                        <i class="fas fa-download"></i> Download Analysis
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p id="loadingText">Processing your request...</p>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div id="errorModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3><i class="fas fa-exclamation-triangle"></i> Error</h3>
+                <p id="errorMessage"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
