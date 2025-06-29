@@ -5,49 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CollegeEssayAI - AI College Admission Essay Generator</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
 </head>
 <body>
+    <!-- Background Particles -->
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
     <div class="container">
         <!-- Header -->
         <header class="header">
-            <h1><i class="fas fa-graduation-cap"></i> CollegeEssayAI</h1>
-            <p>AI-Powered College Admission Essay Generator & Editor</p>
+            <div class="header-content">
+                <h1><i class="fas fa-graduation-cap"></i> CollegeEssayAI</h1>
+                <p>Transform your college application with AI-powered essay generation and expert analysis</p>
+                <div class="header-badges">
+                    <span class="badge"><i class="fas fa-rocket"></i> Fast Generation</span>
+                    <span class="badge"><i class="fas fa-brain"></i> AI-Powered</span>
+                    <span class="badge"><i class="fas fa-shield-alt"></i> Secure</span>
+                </div>
+            </div>
         </header>
 
         <!-- Settings Panel -->
         <div class="settings-panel">
             <div class="setting-group">
-                <label for="apiKey">OpenRouter API Key *</label>
+                <label for="apiKey"><i class="fas fa-key"></i> OpenRouter API Key *</label>
                 <input type="password" id="apiKey" placeholder="sk-..." required>
-                <small>Get your API key from <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a></small>
+                <small>Get your API key from <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a></small>
             </div>
 
             <div class="setting-group">
-                <label for="model">AI Model</label>
+                <label for="model"><i class="fas fa-robot"></i> AI Model</label>
                 <select id="model">
-                    <option value="openai/o4-mini">o4-mini (OpenAI) - Fast & Efficient ⭐</option>
-                    <option value="openai/gpt-4o-mini">GPT-4o Mini (OpenAI) - Fast & Cost-effective</option>
-                    <option value="openai/gpt-4o">GPT-4o (OpenAI) - Most Capable</option>
-                    <option value="openai/gpt-4-turbo">GPT-4 Turbo (OpenAI) - Fast & Reliable</option>
-                    <option value="anthropic/claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (Anthropic) - Excellent</option>
-                    <option value="google/gemini-pro">Gemini Pro (Google) - Creative Tasks</option>
+                    <option value="openai/o4-mini">🚀 o4-mini (OpenAI) - Fast & Efficient</option>
+                    <option value="openai/gpt-4o-mini">⚡ GPT-4o Mini (OpenAI) - Fast & Cost-effective</option>
+                    <option value="openai/gpt-4o">🎯 GPT-4o (OpenAI) - Most Capable</option>
+                    <option value="openai/gpt-4-turbo">🔄 GPT-4 Turbo (OpenAI) - Fast & Reliable</option>
+                    <option value="anthropic/claude-3-5-sonnet-20241022">🧠 Claude 3.5 Sonnet (Anthropic) - Excellent</option>
+                    <option value="google/gemini-pro">💡 Gemini Pro (Google) - Creative Tasks</option>
                 </select>
             </div>
 
             <div class="setting-group">
-                <label for="maxTokens">Max Tokens: <span id="tokenValue">2000</span></label>
+                <label for="maxTokens"><i class="fas fa-sliders-h"></i> Max Tokens: <span id="tokenValue">2000</span></label>
                 <input type="range" id="maxTokens" min="500" max="16000" value="2000" step="100">
                 <small>Maximum tokens for AI responses (max 16,000)</small>
             </div>
 
             <div class="info-box">
-                <h4><i class="fas fa-info-circle"></i> Model Limits</h4>
+                <h4><i class="fas fa-info-circle"></i> Model Limits & Tips</h4>
                 <ul>
                     <li><strong>Context:</strong> Up to 128K tokens (input + output)</li>
                     <li><strong>Output:</strong> Up to 16K tokens per response</li>
                     <li><strong>Recommended:</strong> 2,000-4,000 tokens for essays</li>
+                    <li><strong>Best Practice:</strong> Keep essays under 50K characters</li>
                 </ul>
             </div>
         </div>
@@ -71,27 +89,27 @@
                         <h3><i class="fas fa-file-alt"></i> Essay Details</h3>
                         
                         <div class="form-group">
-                            <label for="essayPrompt">College Essay Prompt *</label>
+                            <label for="essayPrompt"><i class="fas fa-quote-left"></i> College Essay Prompt *</label>
                             <textarea id="essayPrompt" placeholder="Paste the college essay prompt here..." required></textarea>
                             <div class="char-counter" id="promptCounter"></div>
                         </div>
 
                         <div class="form-group">
-                            <label for="essayType">Essay Type</label>
+                            <label for="essayType"><i class="fas fa-tag"></i> Essay Type</label>
                             <select id="essayType">
-                                <option value="personal-statement">Personal Statement</option>
-                                <option value="supplemental">Supplemental Essay</option>
-                                <option value="common-app">Common App Essay</option>
-                                <option value="why-this-college">Why This College</option>
-                                <option value="why-this-major">Why This Major</option>
-                                <option value="extracurricular">Extracurricular Activity</option>
-                                <option value="challenge">Challenge/Obstacle</option>
-                                <option value="community">Community Service</option>
+                                <option value="personal-statement">📝 Personal Statement</option>
+                                <option value="supplemental">📄 Supplemental Essay</option>
+                                <option value="common-app">📋 Common App Essay</option>
+                                <option value="why-this-college">🏫 Why This College</option>
+                                <option value="why-this-major">🎓 Why This Major</option>
+                                <option value="extracurricular">⚽ Extracurricular Activity</option>
+                                <option value="challenge">💪 Challenge/Obstacle</option>
+                                <option value="community">🤝 Community Service</option>
                             </select>
                         </div>
 
                         <div class="form-group">
-                            <label for="wordCount">Word Count</label>
+                            <label for="wordCount"><i class="fas fa-ruler-horizontal"></i> Word Count</label>
                             <select id="wordCount">
                                 <option value="250">250 words</option>
                                 <option value="500">500 words</option>
@@ -102,25 +120,25 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="collegeLevel">Target College Level</label>
+                            <label for="collegeLevel"><i class="fas fa-university"></i> Target College Level</label>
                             <select id="collegeLevel">
-                                <option value="ivy-league">Ivy League</option>
-                                <option value="top-20">Top 20 Universities</option>
-                                <option value="top-50">Top 50 Universities</option>
-                                <option value="state-flagship">State Flagship</option>
-                                <option value="liberal-arts">Liberal Arts Colleges</option>
-                                <option value="community-college">Community College</option>
+                                <option value="ivy-league">🏆 Ivy League</option>
+                                <option value="top-20">🥇 Top 20 Universities</option>
+                                <option value="top-50">🥈 Top 50 Universities</option>
+                                <option value="state-flagship">🏛️ State Flagship</option>
+                                <option value="liberal-arts">🎨 Liberal Arts Colleges</option>
+                                <option value="community-college">🏘️ Community College</option>
                             </select>
                         </div>
 
                         <div class="form-group">
-                            <label for="writingStyle">Writing Style</label>
+                            <label for="writingStyle"><i class="fas fa-palette"></i> Writing Style</label>
                             <select id="writingStyle">
-                                <option value="authentic">Authentic & Personal</option>
-                                <option value="academic">Academic & Formal</option>
-                                <option value="creative">Creative & Narrative</option>
-                                <option value="professional">Professional & Mature</option>
-                                <option value="conversational">Conversational & Friendly</option>
+                                <option value="authentic">💝 Authentic & Personal</option>
+                                <option value="academic">📚 Academic & Formal</option>
+                                <option value="creative">🎭 Creative & Narrative</option>
+                                <option value="professional">💼 Professional & Mature</option>
+                                <option value="conversational">💬 Conversational & Friendly</option>
                             </select>
                         </div>
                     </div>
@@ -129,29 +147,39 @@
                         <h3><i class="fas fa-plus-circle"></i> Additional Information</h3>
                         
                         <div class="form-group">
-                            <label for="personalDetails">Personal Details (Optional)</label>
-                            <textarea id="personalDetails" placeholder="Include relevant experiences, achievements, challenges, or background..."></textarea>
+                            <label for="personalDetails"><i class="fas fa-user"></i> Personal Details (Optional)</label>
+                            <textarea id="personalDetails" placeholder="Include relevant experiences, achievements, challenges, or background that should be incorporated into the essay..."></textarea>
                             <div class="char-counter" id="detailsCounter"></div>
                         </div>
 
                         <div class="form-group">
-                            <label for="additionalRequirements">Additional Requirements (Optional)</label>
+                            <label for="additionalRequirements"><i class="fas fa-list-check"></i> Additional Requirements (Optional)</label>
                             <textarea id="additionalRequirements" placeholder="Any specific requirements, themes, or focus areas..."></textarea>
                             <div class="char-counter" id="requirementsCounter"></div>
                         </div>
 
-                        <button id="generateBtn" class="btn btn-primary">
-                            <i class="fas fa-rocket"></i> Generate Admission Essay
-                        </button>
+                        <div class="action-section">
+                            <button id="generateBtn" class="btn btn-primary">
+                                <i class="fas fa-rocket"></i> Generate Admission Essay
+                            </button>
+                            <div class="btn-info">
+                                <i class="fas fa-lightbulb"></i> Tip: Be specific with personal details for better results
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div id="generatorResult" class="result-section" style="display: none;">
                     <h3><i class="fas fa-check-circle"></i> Generated College Essay</h3>
                     <div id="generatedEssay" class="essay-box"></div>
-                    <button id="downloadEssay" class="btn btn-secondary">
-                        <i class="fas fa-download"></i> Download Essay
-                    </button>
+                    <div class="result-actions">
+                        <button id="downloadEssay" class="btn btn-secondary">
+                            <i class="fas fa-download"></i> Download Essay
+                        </button>
+                        <button id="copyEssay" class="btn btn-secondary">
+                            <i class="fas fa-copy"></i> Copy to Clipboard
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -162,70 +190,128 @@
                         <h3><i class="fas fa-search"></i> Essay Analysis</h3>
                         
                         <div class="form-group">
-                            <label for="essayText">Your Essay *</label>
+                            <label for="essayText"><i class="fas fa-file-text"></i> Your Essay *</label>
                             <textarea id="essayText" placeholder="Paste your college admission essay here..." required></textarea>
                             <div class="char-counter" id="essayCounter"></div>
                         </div>
 
                         <div class="form-group">
-                            <label for="focusArea">Focus Area</label>
+                            <label for="focusArea"><i class="fas fa-bullseye"></i> Focus Area</label>
                             <select id="focusArea">
-                                <option value="comprehensive">Comprehensive Review</option>
-                                <option value="structure">Structure & Flow</option>
-                                <option value="content">Content & Story</option>
-                                <option value="grammar">Grammar & Style</option>
-                                <option value="admissions">Admissions Appeal</option>
-                                <option value="authenticity">Authenticity & Voice</option>
+                                <option value="comprehensive">🔍 Comprehensive Review</option>
+                                <option value="structure">🏗️ Structure & Flow</option>
+                                <option value="content">📖 Content & Story</option>
+                                <option value="grammar">✏️ Grammar & Style</option>
+                                <option value="admissions">🎯 Admissions Appeal</option>
+                                <option value="authenticity">💎 Authenticity & Voice</option>
                             </select>
                         </div>
 
                         <div class="form-group">
-                            <label for="analysisCollegeLevel">Target College Level</label>
+                            <label for="analysisCollegeLevel"><i class="fas fa-chart-line"></i> Target College Level</label>
                             <select id="analysisCollegeLevel">
-                                <option value="ivy-league">Ivy League</option>
-                                <option value="top-20">Top 20 Universities</option>
-                                <option value="top-50">Top 50 Universities</option>
-                                <option value="state-flagship">State Flagship</option>
-                                <option value="liberal-arts">Liberal Arts Colleges</option>
+                                <option value="ivy-league">🏆 Ivy League</option>
+                                <option value="top-20">🥇 Top 20 Universities</option>
+                                <option value="top-50">🥈 Top 50 Universities</option>
+                                <option value="state-flagship">🏛️ State Flagship</option>
+                                <option value="liberal-arts">🎨 Liberal Arts Colleges</option>
                             </select>
                         </div>
 
                         <div class="form-group">
-                            <label for="specificInstructions">Specific Feedback Request (Optional)</label>
-                            <textarea id="specificInstructions" placeholder="What specific aspects would you like me to focus on?"></textarea>
+                            <label for="specificInstructions"><i class="fas fa-comments"></i> Specific Feedback Request (Optional)</label>
+                            <textarea id="specificInstructions" placeholder="What specific aspects would you like me to focus on? (e.g., 'Make it more personal', 'Improve the opening', 'Strengthen the conclusion')"></textarea>
                             <div class="char-counter" id="instructionsCounter"></div>
                         </div>
 
-                        <button id="analyzeBtn" class="btn btn-primary">
-                            <i class="fas fa-search"></i> Analyze & Improve Essay
-                        </button>
+                        <div class="action-section">
+                            <button id="analyzeBtn" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Analyze & Improve Essay
+                            </button>
+                            <div class="btn-info">
+                                <i class="fas fa-lightbulb"></i> Tip: Longer essays get more detailed analysis
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div id="editorResult" class="result-section" style="display: none;">
                     <h3><i class="fas fa-chart-line"></i> Essay Analysis & Suggestions</h3>
                     <div id="analysisResult" class="grade-box"></div>
-                    <button id="downloadAnalysis" class="btn btn-secondary">
-                        <i class="fas fa-download"></i> Download Analysis
-                    </button>
+                    <div class="result-actions">
+                        <button id="downloadAnalysis" class="btn btn-secondary">
+                            <i class="fas fa-download"></i> Download Analysis
+                        </button>
+                        <button id="copyAnalysis" class="btn btn-secondary">
+                            <i class="fas fa-copy"></i> Copy to Clipboard
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Loading Overlay -->
-        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
-            <div class="loading-content">
-                <div class="spinner"></div>
-                <p id="loadingText">Processing your request...</p>
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2024 CollegeEssayAI - Powered by OpenRouter API</p>
+                <div class="footer-links">
+                    <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">Get API Key</a>
+                    <a href="#" onclick="showHelp()">Help</a>
+                    <a href="#" onclick="showPrivacy()">Privacy</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p id="loadingText">Processing your request...</p>
+            <div class="loading-progress">
+                <div class="progress-bar"></div>
             </div>
         </div>
+    </div>
 
-        <!-- Error Modal -->
-        <div id="errorModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h3><i class="fas fa-exclamation-triangle"></i> Error</h3>
-                <p id="errorMessage"></p>
+    <!-- Error Modal -->
+    <div id="errorModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3><i class="fas fa-exclamation-triangle"></i> Error</h3>
+            <p id="errorMessage"></p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="closeErrorModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3><i class="fas fa-question-circle"></i> Help & Tips</h3>
+            <div class="help-content">
+                <h4>Getting Started</h4>
+                <ul>
+                    <li>Get your API key from <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a></li>
+                    <li>Choose your preferred AI model (o4-mini is recommended for speed)</li>
+                    <li>Set appropriate token limits (2,000-4,000 for essays)</li>
+                </ul>
+                
+                <h4>Essay Generation Tips</h4>
+                <ul>
+                    <li>Be specific with personal details for better results</li>
+                    <li>Choose the right essay type and college level</li>
+                    <li>Select a writing style that matches your voice</li>
+                </ul>
+                
+                <h4>Essay Analysis Tips</h4>
+                <ul>
+                    <li>Longer essays get more detailed analysis</li>
+                    <li>Use specific focus areas for targeted feedback</li>
+                    <li>Include context about your target colleges</li>
+                </ul>
             </div>
         </div>
     </div>
