@@ -80,7 +80,7 @@ def call_openrouter_api(prompt, api_key, model, max_tokens):
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
-        "HTTP-Referer": "https://college-essay-ai.streamlit.app",
+        "HTTP-Referer": "https://agjkjablkiapmpbeglmdcmhnihlofija-5ygdsdynwdi6ol6nc59mrv.streamlit.app/",
         "X-Title": "CollegeEssayAI"
     }
     
