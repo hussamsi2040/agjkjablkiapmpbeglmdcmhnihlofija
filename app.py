@@ -77,6 +77,13 @@ def call_openrouter_api(prompt, api_key, model, max_tokens):
     """Call OpenRouter API with the given parameters"""
     url = "https://openrouter.ai/api/v1/chat/completions"
     
+    # Estimate input tokens (rough approximation: 1 token ≈ 4 characters)
+    estimated_input_tokens = len(prompt) // 4
+    
+    # Check if we're approaching context limits
+    if estimated_input_tokens > 100000:  # Leave some buffer for 128K limit
+        st.warning("⚠️ **Large Input Warning**: Your input is very large and may approach model context limits.")
+    
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
@@ -114,6 +121,9 @@ def call_openrouter_api(prompt, api_key, model, max_tokens):
             error_data = response.json()
             error_msg = error_data.get('error', {}).get('message', 'Bad request')
             st.error(f"❌ **Bad Request**: {error_msg}")
+            return None
+        elif response.status_code == 413:
+            st.error("❌ **Request Too Large**: Your input exceeds the model's context limit. Please shorten your input.")
             return None
         elif response.status_code != 200:
             st.error(f"❌ **API Error**: HTTP {response.status_code} - {response.reason}")
@@ -340,12 +350,20 @@ def main():
         max_tokens = st.slider(
             "Max Tokens",
             min_value=500,
-            max_value=4000,
+            max_value=16000,  # Updated to respect 16K output limit
             value=2000,
             step=100,
-            help="Maximum number of tokens for AI responses"
+            help="Maximum number of tokens for AI responses (max 16,000 for most models)"
         )
         st.session_state.max_tokens = max_tokens
+        
+        # Context info
+        st.info("""
+        **Model Limits:**
+        - **Context**: Up to 128K tokens (input + output)
+        - **Output**: Up to 16K tokens per response
+        - **Recommended**: 2,000-4,000 tokens for essays
+        """)
         
         # Info box
         st.info("""
@@ -403,6 +421,12 @@ def main():
                 height=100,
                 help="The essay prompt from the college application"
             )
+            
+            # Show character count for prompt
+            if essay_prompt:
+                char_count = len(essay_prompt)
+                estimated_tokens = char_count // 4
+                st.caption(f"📊 Prompt: {char_count:,} characters | ~{estimated_tokens:,} tokens")
             
             # Essay type
             essay_type = st.selectbox(
@@ -516,7 +540,7 @@ def main():
                                 additional_requirements
                             )
                             
-                            result = call_openrouter_api(api_key, model, max_tokens, prompt)
+                            result = call_openrouter_api(prompt, api_key, model, max_tokens)
                             
                             if result:
                                 st.success("✅ Essay generated successfully!")
@@ -549,8 +573,19 @@ def main():
                 "Your Essay *",
                 placeholder="Paste your college admission essay here...",
                 height=300,
-                help="The essay you want to analyze and improve"
+                help="The essay you want to analyze and improve (max ~50K characters for best results)"
             )
+            
+            # Show character count and estimated tokens
+            if essay_text:
+                char_count = len(essay_text)
+                estimated_tokens = char_count // 4
+                st.caption(f"📊 Characters: {char_count:,} | Estimated tokens: ~{estimated_tokens:,}")
+                
+                if estimated_tokens > 80000:
+                    st.warning("⚠️ **Large Essay Warning**: Your essay is very long and may approach context limits.")
+                elif estimated_tokens > 50000:
+                    st.info("ℹ️ **Note**: Your essay is quite long. Consider breaking it into smaller sections for analysis.")
             
             # Focus area
             focus_area = st.selectbox(
@@ -620,7 +655,7 @@ def main():
                                 specific_instructions
                             )
                             
-                            result = call_openrouter_api(api_key, model, max_tokens, prompt)
+                            result = call_openrouter_api(prompt, api_key, model, max_tokens)
                             
                             if result:
                                 st.success("✅ Essay analysis completed!")
