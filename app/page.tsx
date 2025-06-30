@@ -41,7 +41,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPrompts, setShowPrompts] = useState(false);
-  const [showWorkflow, setShowWorkflow] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [essayData, setEssayData] = useState<EssayData>({
     prompt: '',
     wordCount: 650,
@@ -49,7 +49,6 @@ export default function Home() {
     style: 'personal narrative'
   });
   const [personalDetails, setPersonalDetails] = useState('');
-  const [workflowStep, setWorkflowStep] = useState<'input' | 'generated' | 'editing' | 'analysis'>('input');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const premadePrompts = [
     'Write a college essay about overcoming a challenge.',
@@ -103,7 +102,6 @@ export default function Home() {
     setCurrentThreadId(newThread.id);
     setEssayData({ prompt: '', wordCount: 650, tone: 'professional', style: 'personal narrative' });
     setPersonalDetails('');
-    setWorkflowStep('input');
   };
   const switchThread = (id: string) => {
     setThreads(prev => prev.map(t => ({ ...t, isActive: t.id === id })));
@@ -169,7 +167,6 @@ export default function Home() {
           model: selectedModel,
           meta: result
         };
-        setWorkflowStep('analysis');
       } else if (/edit|revise|improve/i.test(userMsg.content)) {
         const thread = getCurrentThread();
         const lastEssay = thread?.messages.filter(m => m.type === 'generated' || m.type === 'edited').slice(-1)[0]?.content || '';
@@ -191,7 +188,6 @@ export default function Home() {
           timestamp: new Date(),
           model: selectedModel
         };
-        setWorkflowStep('editing');
       } else {
         const result = await generateEssay({
           prompt: userMsg.content,
@@ -211,7 +207,6 @@ export default function Home() {
           timestamp: new Date(),
           model: selectedModel
         };
-        setWorkflowStep('generated');
       }
       addMessage(aiMsg);
     } catch (e: any) {
@@ -251,6 +246,61 @@ export default function Home() {
       </div>
       {/* Main Chat */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#fff' }}>
+        {/* Advanced Options Panel */}
+        <div style={{ padding: 16, borderBottom: '1px solid #eee', background: '#fafafa' }}>
+          <button onClick={() => setShowAdvanced(v => !v)} style={{ background: '#444', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 14px', fontSize: 15, cursor: 'pointer', marginBottom: 8 }}>
+            {showAdvanced ? 'Hide Advanced Options' : 'Show Advanced Options'}
+          </button>
+          {showAdvanced && (
+            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div>
+                <label style={{ fontWeight: 600 }}>Personal Details (optional):</label>
+                <textarea value={personalDetails} onChange={e => updatePersonalDetails(e.target.value)} style={{ width: '100%', minHeight: 40, borderRadius: 6, border: '1px solid #ddd', padding: 8, marginTop: 4 }} placeholder="Add background, experiences, achievements, goals, etc." />
+              </div>
+              <div>
+                <label style={{ fontWeight: 600 }}>Essay Prompt:</label>
+                <textarea value={essayData.prompt} onChange={e => setEssayData({ ...essayData, prompt: e.target.value })} style={{ width: '100%', minHeight: 40, borderRadius: 6, border: '1px solid #ddd', padding: 8, marginTop: 4 }} placeholder="Essay prompt..." />
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontWeight: 600 }}>Word Count:</label>
+                  <select value={essayData.wordCount} onChange={e => setEssayData({ ...essayData, wordCount: Number(e.target.value) })} style={{ width: '100%', borderRadius: 6, border: '1px solid #ddd', padding: 6, marginTop: 4 }}>
+                    <option value={250}>250</option>
+                    <option value={500}>500</option>
+                    <option value={650}>650</option>
+                    <option value={1000}>1000</option>
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontWeight: 600 }}>Tone:</label>
+                  <select value={essayData.tone} onChange={e => setEssayData({ ...essayData, tone: e.target.value })} style={{ width: '100%', borderRadius: 6, border: '1px solid #ddd', padding: 6, marginTop: 4 }}>
+                    <option value="professional">Professional</option>
+                    <option value="personal">Personal</option>
+                    <option value="conversational">Conversational</option>
+                    <option value="formal">Formal</option>
+                    <option value="enthusiastic">Enthusiastic</option>
+                    <option value="reflective">Reflective</option>
+                    <option value="confident">Confident</option>
+                    <option value="humble">Humble</option>
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontWeight: 600 }}>Style:</label>
+                  <select value={essayData.style} onChange={e => setEssayData({ ...essayData, style: e.target.value })} style={{ width: '100%', borderRadius: 6, border: '1px solid #ddd', padding: 6, marginTop: 4 }}>
+                    <option value="personal narrative">Personal Narrative</option>
+                    <option value="analytical">Analytical</option>
+                    <option value="descriptive">Descriptive</option>
+                    <option value="argumentative">Argumentative</option>
+                    <option value="reflective">Reflective</option>
+                    <option value="creative">Creative</option>
+                    <option value="academic">Academic</option>
+                    <option value="storytelling">Storytelling</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
           {currentThread?.messages.map(m => (
             <div key={m.id} style={{ display: 'flex', flexDirection: m.role === 'user' ? 'row-reverse' : 'row', marginBottom: 16 }}>
@@ -265,15 +315,21 @@ export default function Home() {
                     <div><b>Suggestions:</b> <ul>{m.meta.suggestions?.map((s: string, i: number) => <li key={i}>{s}</li>)}</ul></div>
                   </div>
                 )}
+                {/* Quick Actions for AI essay bubbles */}
+                {m.role === 'ai' && (m.type === 'generated' || m.type === 'edited') && (
+                  <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
+                    <button onClick={() => setInput('Edit: ' + m.content)} style={{ background: '#ffd700', color: '#222', border: 'none', borderRadius: 6, padding: '4px 12px', fontSize: 14, cursor: 'pointer' }}>Edit</button>
+                    <button onClick={() => setInput('Analyze: ' + m.content)} style={{ background: '#10a37f', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 12px', fontSize: 14, cursor: 'pointer' }}>Analyze</button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
         <div style={{ padding: 16, borderTop: '1px solid #eee', background: '#fafafa', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
             <button onClick={() => setShowPrompts(v => !v)} style={{ background: '#10a37f', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 14px', fontSize: 15, cursor: 'pointer' }}>Premade Prompts</button>
-            <button onClick={() => setShowWorkflow(true)} style={{ background: '#444', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 14px', fontSize: 15, cursor: 'pointer' }}>Advanced Workflow</button>
           </div>
           {showPrompts && (
             <div style={{ background: '#fff', border: '1px solid #ddd', borderRadius: 8, marginBottom: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: 12, zIndex: 10 }}>
@@ -295,60 +351,6 @@ export default function Home() {
         </div>
         {error && <div style={{ color: 'red', textAlign: 'center', padding: 8 }}>{error}</div>}
       </div>
-      {/* Advanced Workflow Modal */}
-      {showWorkflow && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.4)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowWorkflow(false)}>
-          <div style={{ background: '#fff', borderRadius: 12, padding: 32, minWidth: 340, maxWidth: 480, boxShadow: '0 4px 32px rgba(0,0,0,0.15)' }} onClick={e => e.stopPropagation()}>
-            <h2 style={{ marginBottom: 18 }}>Advanced Workflow</h2>
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ fontWeight: 600 }}>Personal Details (optional):</label>
-              <textarea value={personalDetails} onChange={e => updatePersonalDetails(e.target.value)} style={{ width: '100%', minHeight: 60, borderRadius: 6, border: '1px solid #ddd', padding: 8, marginTop: 6 }} placeholder="Add background, experiences, achievements, goals, etc." />
-            </div>
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ fontWeight: 600 }}>Essay Prompt:</label>
-              <textarea value={essayData.prompt} onChange={e => setEssayData({ ...essayData, prompt: e.target.value })} style={{ width: '100%', minHeight: 60, borderRadius: 6, border: '1px solid #ddd', padding: 8, marginTop: 6 }} placeholder="Essay prompt..." />
-            </div>
-            <div style={{ marginBottom: 18, display: 'flex', gap: 8 }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontWeight: 600 }}>Word Count:</label>
-                <select value={essayData.wordCount} onChange={e => setEssayData({ ...essayData, wordCount: Number(e.target.value) })} style={{ width: '100%', borderRadius: 6, border: '1px solid #ddd', padding: 6, marginTop: 6 }}>
-                  <option value={250}>250</option>
-                  <option value={500}>500</option>
-                  <option value={650}>650</option>
-                  <option value={1000}>1000</option>
-                </select>
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontWeight: 600 }}>Tone:</label>
-                <select value={essayData.tone} onChange={e => setEssayData({ ...essayData, tone: e.target.value })} style={{ width: '100%', borderRadius: 6, border: '1px solid #ddd', padding: 6, marginTop: 6 }}>
-                  <option value="professional">Professional</option>
-                  <option value="personal">Personal</option>
-                  <option value="conversational">Conversational</option>
-                  <option value="formal">Formal</option>
-                  <option value="enthusiastic">Enthusiastic</option>
-                  <option value="reflective">Reflective</option>
-                  <option value="confident">Confident</option>
-                  <option value="humble">Humble</option>
-                </select>
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontWeight: 600 }}>Style:</label>
-                <select value={essayData.style} onChange={e => setEssayData({ ...essayData, style: e.target.value })} style={{ width: '100%', borderRadius: 6, border: '1px solid #ddd', padding: 6, marginTop: 6 }}>
-                  <option value="personal narrative">Personal Narrative</option>
-                  <option value="analytical">Analytical</option>
-                  <option value="descriptive">Descriptive</option>
-                  <option value="argumentative">Argumentative</option>
-                  <option value="reflective">Reflective</option>
-                  <option value="creative">Creative</option>
-                  <option value="academic">Academic</option>
-                  <option value="storytelling">Storytelling</option>
-                </select>
-              </div>
-            </div>
-            <button onClick={() => setShowWorkflow(false)} style={{ background: '#10a37f', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 24px', fontSize: 16, fontWeight: 600, marginTop: 10, cursor: 'pointer', width: '100%' }}>Done</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 } 
