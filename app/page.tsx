@@ -248,14 +248,16 @@ export default function Home() {
             <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888', fontSize: 22, padding: 60 }}>No essays yet. Click &quot;Start New Essay&quot; to begin!</div>
           ) : (
             threads.map((t, idx) => (
-              <div key={t.id} style={{ background: '#fff', borderRadius: 18, boxShadow: '0 2px 16px #6366f122', padding: 28, position: 'relative', border: '2px solid #e0e7ef', minHeight: 180, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                  <span style={{ width: 18, height: 18, borderRadius: 9, background: assignColor(idx), display: 'inline-block' }}></span>
-                  <span style={{ fontWeight: 700, fontSize: 20, color: '#222', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</span>
+              <Link key={t.id} href={`/studio/${t.id}`} style={{ textDecoration: 'none' }}>
+                <div style={{ background: '#fff', borderRadius: 18, boxShadow: '0 2px 16px #6366f122', padding: 28, position: 'relative', border: '2px solid #e0e7ef', minHeight: 180, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                    <span style={{ width: 18, height: 18, borderRadius: 9, background: assignColor(idx), display: 'inline-block' }}></span>
+                    <span style={{ fontWeight: 700, fontSize: 20, color: '#222', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</span>
+                  </div>
+                  <div style={{ color: '#6366f1', fontWeight: 600, fontSize: 15, marginBottom: 8 }}>{t.messages.length} message{t.messages.length !== 1 ? 's' : ''}</div>
+                  <div style={{ color: '#888', fontSize: 13 }}>Last updated: {t.updatedAt.toLocaleDateString()} {t.updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                 </div>
-                <div style={{ color: '#6366f1', fontWeight: 600, fontSize: 15, marginBottom: 8 }}>{t.messages.length} message{t.messages.length !== 1 ? 's' : ''}</div>
-                <div style={{ color: '#888', fontSize: 13 }}>Last updated: {t.updatedAt.toLocaleDateString()} {t.updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-              </div>
+              </Link>
             ))
           )}
         </div>
