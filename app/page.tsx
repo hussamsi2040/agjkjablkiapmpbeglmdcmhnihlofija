@@ -333,6 +333,13 @@ export default function Home() {
     setWorkflowStep('input');
   };
 
+  // Helper for workflow progress bar
+  const getStepStatus = (step: 'input' | 'generated' | 'editing' | 'analysis') => {
+    const order = { input: 0, generated: 1, editing: 2, analysis: 3 };
+    if (workflowStep === step) return 'active';
+    return order[workflowStep] > order[step] ? 'completed' : '';
+  };
+
   return (
     <div className="container">
       {/* Header */}
@@ -462,19 +469,19 @@ export default function Home() {
       <div className="main-content">
         {/* Workflow Progress */}
         <div className="workflow-progress">
-          <div className={`workflow-step ${workflowStep === 'input' ? 'active' : workflowStep !== 'input' ? 'completed' : ''}`}>
+          <div className={`workflow-step ${getStepStatus('input')}`}> 
             <div className="step-number">1</div>
             <div className="step-label">Input</div>
           </div>
-          <div className={`workflow-step ${workflowStep === 'generated' ? 'active' : workflowStep === 'editing' || workflowStep === 'analysis' ? 'completed' : ''}`}>
+          <div className={`workflow-step ${getStepStatus('generated')}`}> 
             <div className="step-number">2</div>
             <div className="step-label">Generate</div>
           </div>
-          <div className={`workflow-step ${workflowStep === 'editing' ? 'active' : workflowStep === 'analysis' ? 'completed' : ''}`}>
+          <div className={`workflow-step ${getStepStatus('editing')}`}> 
             <div className="step-number">3</div>
             <div className="step-label">Edit</div>
           </div>
-          <div className={`workflow-step ${workflowStep === 'analysis' ? 'active' : ''}`}>
+          <div className={`workflow-step ${getStepStatus('analysis')}`}> 
             <div className="step-number">4</div>
             <div className="step-label">Analyze</div>
           </div>
