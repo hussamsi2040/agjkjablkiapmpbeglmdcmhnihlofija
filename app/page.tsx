@@ -61,6 +61,13 @@ export default function Home() {
     'Edit my essay to improve its flow and transitions.'
   ];
 
+  // Add state for drawer and renaming
+  const [showDrawer, setShowDrawer] = useState(false);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [editTargetId, setEditTargetId] = useState<string | null>(null);
+  const [editInstruction, setEditInstruction] = useState('');
+
   // Load/save threads
   useEffect(() => {
     const savedThreads = localStorage.getItem('essayThreadsUnified');
@@ -221,21 +228,25 @@ export default function Home() {
   return (
     <div style={{ display: 'flex', height: '100vh', background: '#f7f7f8' }}>
       {/* Sidebar */}
-      <div style={{ width: 240, background: '#222', color: '#fff', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ width: 260, background: '#222', color: '#fff', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: 16, borderBottom: '1px solid #333', display: 'flex', gap: 8 }}>
-          <button onClick={createNewThread} style={{ flex: 1, background: '#444', color: '#fff', border: 'none', borderRadius: 6, padding: 8, cursor: 'pointer' }}>+ New</button>
+          <button onClick={createNewThread} style={{ flex: 1, background: '#10a37f', color: '#fff', border: 'none', borderRadius: 6, padding: 8, cursor: 'pointer', fontWeight: 600 }}>+ New Project</button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {threads.map(t => (
-            <div key={t.id} style={{ padding: 12, background: t.id === currentThreadId ? '#333' : 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} onClick={() => switchThread(t.id)}>
-              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120 }}>{t.title}</span>
+            <div key={t.id} style={{ padding: 12, background: t.id === currentThreadId ? '#333' : 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }} onClick={() => switchThread(t.id)}>
+              {renamingId === t.id ? (
+                <input value={renameValue} onChange={e => setRenameValue(e.target.value)} onBlur={() => { setThreads(prev => prev.map(th => th.id === t.id ? { ...th, title: renameValue || th.title } : th)); setRenamingId(null); }} onKeyDown={e => { if (e.key === 'Enter') { setThreads(prev => prev.map(th => th.id === t.id ? { ...th, title: renameValue || th.title } : th)); setRenamingId(null); }}} style={{ flex: 1, borderRadius: 4, border: '1px solid #444', background: '#111', color: '#fff', padding: 4, fontSize: 14 }} autoFocus />
+              ) : (
+                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120, fontWeight: 600 }} onDoubleClick={e => { e.stopPropagation(); setRenamingId(t.id); setRenameValue(t.title); }}>{t.title}</span>
+              )}
               <button onClick={e => { e.stopPropagation(); deleteThread(t.id); }} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer' }}>🗑️</button>
             </div>
           ))}
         </div>
         <div style={{ padding: 16, borderTop: '1px solid #333' }}>
-          <input type="password" value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="API Key" style={{ width: '100%', padding: 6, borderRadius: 4, border: '1px solid #444', background: '#111', color: '#fff' }} />
-          <select value={selectedModel} onChange={e => setSelectedModel(e.target.value)} style={{ width: '100%', marginTop: 8, padding: 6, borderRadius: 4, border: '1px solid #444', background: '#111', color: '#fff' }}>
+          <input type="password" value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="API Key" style={{ width: '100%', padding: 6, borderRadius: 4, border: '1px solid #444', background: '#111', color: '#fff', marginBottom: 8 }} />
+          <select value={selectedModel} onChange={e => setSelectedModel(e.target.value)} style={{ width: '100%', padding: 6, borderRadius: 4, border: '1px solid #444', background: '#111', color: '#fff' }}>
             <option value="openai/o4-mini">O4 Mini</option>
             <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
             <option value="openai/gpt-4o">GPT-4o</option>
@@ -244,67 +255,19 @@ export default function Home() {
           </select>
         </div>
       </div>
-      {/* Main Chat */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#fff' }}>
-        {/* Advanced Options Panel */}
-        <div style={{ padding: 16, borderBottom: '1px solid #eee', background: '#fafafa' }}>
-          <button onClick={() => setShowAdvanced(v => !v)} style={{ background: '#444', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 14px', fontSize: 15, cursor: 'pointer', marginBottom: 8 }}>
-            {showAdvanced ? 'Hide Advanced Options' : 'Show Advanced Options'}
-          </button>
-          {showAdvanced && (
-            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div>
-                <label style={{ fontWeight: 600 }}>Personal Details (optional):</label>
-                <textarea value={personalDetails} onChange={e => updatePersonalDetails(e.target.value)} style={{ width: '100%', minHeight: 40, borderRadius: 6, border: '1px solid #ddd', padding: 8, marginTop: 4 }} placeholder="Add background, experiences, achievements, goals, etc." />
-              </div>
-              <div>
-                <label style={{ fontWeight: 600 }}>Essay Prompt:</label>
-                <textarea value={essayData.prompt} onChange={e => setEssayData({ ...essayData, prompt: e.target.value })} style={{ width: '100%', minHeight: 40, borderRadius: 6, border: '1px solid #ddd', padding: 8, marginTop: 4 }} placeholder="Essay prompt..." />
-              </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontWeight: 600 }}>Word Count:</label>
-                  <select value={essayData.wordCount} onChange={e => setEssayData({ ...essayData, wordCount: Number(e.target.value) })} style={{ width: '100%', borderRadius: 6, border: '1px solid #ddd', padding: 6, marginTop: 4 }}>
-                    <option value={250}>250</option>
-                    <option value={500}>500</option>
-                    <option value={650}>650</option>
-                    <option value={1000}>1000</option>
-                  </select>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontWeight: 600 }}>Tone:</label>
-                  <select value={essayData.tone} onChange={e => setEssayData({ ...essayData, tone: e.target.value })} style={{ width: '100%', borderRadius: 6, border: '1px solid #ddd', padding: 6, marginTop: 4 }}>
-                    <option value="professional">Professional</option>
-                    <option value="personal">Personal</option>
-                    <option value="conversational">Conversational</option>
-                    <option value="formal">Formal</option>
-                    <option value="enthusiastic">Enthusiastic</option>
-                    <option value="reflective">Reflective</option>
-                    <option value="confident">Confident</option>
-                    <option value="humble">Humble</option>
-                  </select>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontWeight: 600 }}>Style:</label>
-                  <select value={essayData.style} onChange={e => setEssayData({ ...essayData, style: e.target.value })} style={{ width: '100%', borderRadius: 6, border: '1px solid #ddd', padding: 6, marginTop: 4 }}>
-                    <option value="personal narrative">Personal Narrative</option>
-                    <option value="analytical">Analytical</option>
-                    <option value="descriptive">Descriptive</option>
-                    <option value="argumentative">Argumentative</option>
-                    <option value="reflective">Reflective</option>
-                    <option value="creative">Creative</option>
-                    <option value="academic">Academic</option>
-                    <option value="storytelling">Storytelling</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          )}
+      {/* Main Area */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#fff', position: 'relative' }}>
+        {/* Premade Prompts Bar */}
+        <div style={{ padding: '12px 24px', borderBottom: '1px solid #eee', background: '#fafafa', display: 'flex', overflowX: 'auto', gap: 10 }}>
+          {premadePrompts.map((p, i) => (
+            <button key={i} onClick={() => setInput(p)} style={{ background: '#f3f3f3', color: '#222', border: '1px solid #ddd', borderRadius: 20, padding: '6px 18px', fontSize: 15, cursor: 'pointer', whiteSpace: 'nowrap' }}>{p}</button>
+          ))}
         </div>
+        {/* Chat Area */}
         <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
           {currentThread?.messages.map(m => (
             <div key={m.id} style={{ display: 'flex', flexDirection: m.role === 'user' ? 'row-reverse' : 'row', marginBottom: 16 }}>
-              <div style={{ maxWidth: '70%', background: m.role === 'user' ? '#10a37f' : m.type === 'analyzed' ? '#f7f3e3' : '#f3f3f3', color: m.role === 'user' ? '#fff' : '#222', borderRadius: 16, padding: 14, fontSize: 15, whiteSpace: 'pre-wrap', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+              <div style={{ maxWidth: '70%', background: m.role === 'user' ? '#10a37f' : m.type === 'analyzed' ? '#f7f3e3' : '#f3f3f3', color: m.role === 'user' ? '#fff' : '#222', borderRadius: 16, padding: 14, fontSize: 15, whiteSpace: 'pre-wrap', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', position: 'relative' }}>
                 {m.content}
                 <div style={{ fontSize: 11, color: m.role === 'user' ? '#c7f5e9' : '#888', marginTop: 8, textAlign: m.role === 'user' ? 'right' : 'left' }}>{m.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                 {m.type === 'analyzed' && m.meta && (
@@ -315,11 +278,23 @@ export default function Home() {
                     <div><b>Suggestions:</b> <ul>{m.meta.suggestions?.map((s: string, i: number) => <li key={i}>{s}</li>)}</ul></div>
                   </div>
                 )}
-                {/* Quick Actions for AI essay bubbles */}
+                {/* Smart Bubble Actions */}
                 {m.role === 'ai' && (m.type === 'generated' || m.type === 'edited') && (
                   <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
-                    <button onClick={() => setInput('Edit: ' + m.content)} style={{ background: '#ffd700', color: '#222', border: 'none', borderRadius: 6, padding: '4px 12px', fontSize: 14, cursor: 'pointer' }}>Edit</button>
-                    <button onClick={() => setInput('Analyze: ' + m.content)} style={{ background: '#10a37f', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 12px', fontSize: 14, cursor: 'pointer' }}>Analyze</button>
+                    {editTargetId === m.id ? (
+                      <>
+                        <input value={editInstruction} onChange={e => setEditInstruction(e.target.value)} placeholder="Edit instructions..." style={{ borderRadius: 6, border: '1px solid #ddd', padding: 6, fontSize: 14, width: 140 }} />
+                        <button onClick={async () => { setInput('Edit: ' + editInstruction + '\n' + m.content); setEditTargetId(null); setEditInstruction(''); }} style={{ background: '#ffd700', color: '#222', border: 'none', borderRadius: 6, padding: '4px 12px', fontSize: 14, cursor: 'pointer' }}>Send Edit</button>
+                        <button onClick={() => { setEditTargetId(null); setEditInstruction(''); }} style={{ background: '#eee', color: '#222', border: 'none', borderRadius: 6, padding: '4px 12px', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => { setEditTargetId(m.id); setEditInstruction(''); }} style={{ background: '#ffd700', color: '#222', border: 'none', borderRadius: 6, padding: '4px 12px', fontSize: 14, cursor: 'pointer' }}>Edit</button>
+                        <button onClick={() => setInput('Analyze: ' + m.content)} style={{ background: '#10a37f', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 12px', fontSize: 14, cursor: 'pointer' }}>Analyze</button>
+                        <button onClick={() => { navigator.clipboard.writeText(m.content); }} style={{ background: '#eee', color: '#222', border: 'none', borderRadius: 6, padding: '4px 12px', fontSize: 14, cursor: 'pointer' }}>Copy</button>
+                        <button onClick={() => { const blob = new Blob([m.content], { type: 'text/plain' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'essay.txt'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }} style={{ background: '#eee', color: '#222', border: 'none', borderRadius: 6, padding: '4px 12px', fontSize: 14, cursor: 'pointer' }}>Download</button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -327,29 +302,65 @@ export default function Home() {
           ))}
           <div ref={messagesEndRef} />
         </div>
-        <div style={{ padding: 16, borderTop: '1px solid #eee', background: '#fafafa', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
-            <button onClick={() => setShowPrompts(v => !v)} style={{ background: '#10a37f', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 14px', fontSize: 15, cursor: 'pointer' }}>Premade Prompts</button>
-          </div>
-          {showPrompts && (
-            <div style={{ background: '#fff', border: '1px solid #ddd', borderRadius: 8, marginBottom: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: 12, zIndex: 10 }}>
-              {premadePrompts.map((p, i) => (
-                <div key={i} style={{ padding: 8, cursor: 'pointer', borderRadius: 4, color: '#222', fontSize: 15, marginBottom: 2, background: '#f7f7f8' }}
-                  onClick={() => { setInput(p); setShowPrompts(false); }}
-                  onMouseOver={e => (e.currentTarget.style.background = '#e6f7f1')}
-                  onMouseOut={e => (e.currentTarget.style.background = '#f7f7f8')}
-                >
-                  {p}
-                </div>
-              ))}
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: 8 }}>
-            <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }} placeholder="Type your essay prompt, edit, or analysis request..." style={{ flex: 1, borderRadius: 8, border: '1px solid #ddd', padding: 10, fontSize: 15, resize: 'none', minHeight: 36, maxHeight: 120 }} disabled={isLoading} />
-            <button onClick={handleSend} disabled={isLoading || !input.trim() || !apiKey} style={{ background: '#10a37f', color: '#fff', border: 'none', borderRadius: 8, padding: '0 18px', fontSize: 18, cursor: isLoading || !input.trim() || !apiKey ? 'not-allowed' : 'pointer' }}>{isLoading ? '...' : '➤'}</button>
-          </div>
+        {/* Input Area */}
+        <div style={{ padding: 16, borderTop: '1px solid #eee', background: '#fafafa', display: 'flex', gap: 8 }}>
+          <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }} placeholder="Type your essay prompt, edit, or analysis request..." style={{ flex: 1, borderRadius: 8, border: '1px solid #ddd', padding: 10, fontSize: 15, resize: 'none', minHeight: 36, maxHeight: 120 }} disabled={isLoading} />
+          <button onClick={handleSend} disabled={isLoading || !input.trim() || !apiKey} style={{ background: '#10a37f', color: '#fff', border: 'none', borderRadius: 8, padding: '0 18px', fontSize: 18, cursor: isLoading || !input.trim() || !apiKey ? 'not-allowed' : 'pointer' }}>{isLoading ? '...' : '➤'}</button>
+          <button onClick={() => setShowDrawer(true)} style={{ background: '#444', color: '#fff', border: 'none', borderRadius: 8, padding: '0 18px', fontSize: 16, cursor: 'pointer' }}>Advanced</button>
         </div>
         {error && <div style={{ color: 'red', textAlign: 'center', padding: 8 }}>{error}</div>}
+        {/* Advanced Drawer */}
+        {showDrawer && (
+          <div style={{ position: 'fixed', top: 0, right: 0, width: 340, height: '100vh', background: '#fff', boxShadow: '-4px 0 32px rgba(0,0,0,0.12)', zIndex: 1000, display: 'flex', flexDirection: 'column', padding: 32 }}>
+            <h2 style={{ marginBottom: 18 }}>Essay Settings</h2>
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ fontWeight: 600 }}>Personal Details (optional):</label>
+              <textarea value={personalDetails} onChange={e => updatePersonalDetails(e.target.value)} style={{ width: '100%', minHeight: 60, borderRadius: 6, border: '1px solid #ddd', padding: 8, marginTop: 6 }} placeholder="Add background, experiences, achievements, goals, etc." />
+            </div>
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ fontWeight: 600 }}>Essay Prompt:</label>
+              <textarea value={essayData.prompt} onChange={e => setEssayData({ ...essayData, prompt: e.target.value })} style={{ width: '100%', minHeight: 60, borderRadius: 6, border: '1px solid #ddd', padding: 8, marginTop: 6 }} placeholder="Essay prompt..." />
+            </div>
+            <div style={{ marginBottom: 18, display: 'flex', gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontWeight: 600 }}>Word Count:</label>
+                <select value={essayData.wordCount} onChange={e => setEssayData({ ...essayData, wordCount: Number(e.target.value) })} style={{ width: '100%', borderRadius: 6, border: '1px solid #ddd', padding: 6, marginTop: 6 }}>
+                  <option value={250}>250</option>
+                  <option value={500}>500</option>
+                  <option value={650}>650</option>
+                  <option value={1000}>1000</option>
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontWeight: 600 }}>Tone:</label>
+                <select value={essayData.tone} onChange={e => setEssayData({ ...essayData, tone: e.target.value })} style={{ width: '100%', borderRadius: 6, border: '1px solid #ddd', padding: 6, marginTop: 6 }}>
+                  <option value="professional">Professional</option>
+                  <option value="personal">Personal</option>
+                  <option value="conversational">Conversational</option>
+                  <option value="formal">Formal</option>
+                  <option value="enthusiastic">Enthusiastic</option>
+                  <option value="reflective">Reflective</option>
+                  <option value="confident">Confident</option>
+                  <option value="humble">Humble</option>
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontWeight: 600 }}>Style:</label>
+                <select value={essayData.style} onChange={e => setEssayData({ ...essayData, style: e.target.value })} style={{ width: '100%', borderRadius: 6, border: '1px solid #ddd', padding: 6, marginTop: 6 }}>
+                  <option value="personal narrative">Personal Narrative</option>
+                  <option value="analytical">Analytical</option>
+                  <option value="descriptive">Descriptive</option>
+                  <option value="argumentative">Argumentative</option>
+                  <option value="reflective">Reflective</option>
+                  <option value="creative">Creative</option>
+                  <option value="academic">Academic</option>
+                  <option value="storytelling">Storytelling</option>
+                </select>
+              </div>
+            </div>
+            <button onClick={() => setShowDrawer(false)} style={{ background: '#10a37f', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 24px', fontSize: 16, fontWeight: 600, marginTop: 10, cursor: 'pointer', width: '100%' }}>Apply</button>
+          </div>
+        )}
       </div>
     </div>
   );
