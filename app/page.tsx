@@ -245,16 +245,18 @@ export default function Home() {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 32 }}>
           {threads.length === 0 ? (
-            <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888', fontSize: 22, padding: 60 }}>No essays yet. Click "Start New Essay" to begin!</div>
+            <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888', fontSize: 22, padding: 60 }}>No essays yet. Click &quot;Start New Essay&quot; to begin!</div>
           ) : (
-            <div style={{ background: '#fff', borderRadius: 18, boxShadow: '0 2px 16px #6366f122', padding: 28, position: 'relative', border: '2px solid #e0e7ef', minHeight: 180, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                <span style={{ width: 18, height: 18, borderRadius: 9, background: assignColor(0), display: 'inline-block' }}></span>
-                <span style={{ fontWeight: 700, fontSize: 20, color: '#222', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{threads[0].title}</span>
+            threads.map((t, idx) => (
+              <div key={t.id} style={{ background: '#fff', borderRadius: 18, boxShadow: '0 2px 16px #6366f122', padding: 28, position: 'relative', border: '2px solid #e0e7ef', minHeight: 180, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                  <span style={{ width: 18, height: 18, borderRadius: 9, background: assignColor(idx), display: 'inline-block' }}></span>
+                  <span style={{ fontWeight: 700, fontSize: 20, color: '#222', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</span>
+                </div>
+                <div style={{ color: '#6366f1', fontWeight: 600, fontSize: 15, marginBottom: 8 }}>{t.messages.length} message{t.messages.length !== 1 ? 's' : ''}</div>
+                <div style={{ color: '#888', fontSize: 13 }}>Last updated: {t.updatedAt.toLocaleDateString()} {t.updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
               </div>
-              <div style={{ color: '#6366f1', fontWeight: 600, fontSize: 15, marginBottom: 8 }}>{threads[0].messages.length} message{threads[0].messages.length !== 1 ? 's' : ''}</div>
-              <div style={{ color: '#888', fontSize: 13 }}>Last updated: {threads[0].updatedAt.toLocaleDateString()} {threads[0].updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-            </div>
+            ))
           )}
         </div>
       </main>
