@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       apiKey: apiKey,
       baseURL: 'https://openrouter.ai/api/v1',
       defaultHeaders: {
-        'HTTP-Referer': 'https://college-essay-ai.vercel.app',
+        'HTTP-Referer': 'https://agjkjablkiapmpbeglmdcmhnihlof1ija-i.vercel.app',
         'X-Title': 'CollegeEssayAI',
       },
     });
