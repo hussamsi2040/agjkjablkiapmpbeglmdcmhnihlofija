@@ -319,22 +319,21 @@ export default function Home() {
       setGeneratedEssay(item.content);
       setActiveTab('generate');
       if (item.prompt) {
-        setEssayData(prev => ({
-          ...prev,
+        setEssayData({
           prompt: item.prompt,
           wordCount: item.wordCount || 650,
           tone: item.tone || 'professional',
           style: item.style || 'personal narrative'
-        }));
+        });
       }
     } else {
       setAnalysis(item.content);
       setActiveTab('analyze');
       if (item.prompt) {
-        setAnalysisData(prev => ({
-          ...prev,
+        setAnalysisData({
+          essay: '',
           prompt: item.prompt
-        }));
+        });
       }
     }
   };
