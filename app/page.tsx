@@ -11,17 +11,34 @@ interface EssayData {
   style: string;
 }
 
-interface HistoryItem {
+interface ThreadMessage {
   id: string;
-  type: 'generated' | 'analyzed' | 'edited';
-  title: string;
+  type: 'user-input' | 'generated' | 'edited' | 'analyzed' | 'system';
   content: string;
-  prompt?: string;
   timestamp: Date;
-  model: string;
-  wordCount?: number;
-  tone?: string;
-  style?: string;
+  model?: string;
+  metadata?: {
+    prompt?: string;
+    wordCount?: number;
+    tone?: string;
+    style?: string;
+    editInstructions?: string;
+    analysis?: {
+      score?: number;
+      strengths?: string[];
+      weaknesses?: string[];
+      suggestions?: string[];
+    };
+  };
+}
+
+interface Thread {
+  id: string;
+  title: string;
+  createdAt: Date;
+  updatedAt: Date;
+  messages: ThreadMessage[];
+  isActive: boolean;
 }
 
 export default function Home() {
@@ -31,6 +48,11 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [testResult, setTestResult] = useState('');
+  
+  // Thread system state
+  const [threads, setThreads] = useState<Thread[]>([]);
+  const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
+  const [showThreads, setShowThreads] = useState(false);
   
   // Essay workflow state
   const [essayData, setEssayData] = useState<EssayData>({
@@ -43,31 +65,38 @@ export default function Home() {
   const [currentEssay, setCurrentEssay] = useState('');
   const [originalPrompt, setOriginalPrompt] = useState('');
   const [workflowStep, setWorkflowStep] = useState<'input' | 'generated' | 'editing' | 'analysis'>('input');
-  
-  // History state
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [showHistory, setShowHistory] = useState(false);
 
-  // Load history from localStorage on component mount
+  // Load threads from localStorage on component mount
   useEffect(() => {
-    const savedHistory = localStorage.getItem('essayHistory');
-    if (savedHistory) {
+    const savedThreads = localStorage.getItem('essayThreads');
+    if (savedThreads) {
       try {
-        const parsedHistory = JSON.parse(savedHistory).map((item: any) => ({
-          ...item,
-          timestamp: new Date(item.timestamp)
+        const parsedThreads = JSON.parse(savedThreads).map((thread: any) => ({
+          ...thread,
+          createdAt: new Date(thread.createdAt),
+          updatedAt: new Date(thread.updatedAt),
+          messages: thread.messages.map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }))
         }));
-        setHistory(parsedHistory);
+        setThreads(parsedThreads);
+        
+        // Set the most recent active thread as current
+        const activeThread = parsedThreads.find((t: Thread) => t.isActive);
+        if (activeThread) {
+          setCurrentThreadId(activeThread.id);
+        }
       } catch (error) {
-        console.error('Error loading history:', error);
+        console.error('Error loading threads:', error);
       }
     }
   }, []);
 
-  // Save history to localStorage whenever it changes
+  // Save threads to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('essayHistory', JSON.stringify(history));
-  }, [history]);
+    localStorage.setItem('essayThreads', JSON.stringify(threads));
+  }, [threads]);
 
   const models = [
     { value: 'openai/o4-mini', label: 'O4 Mini (Fast & Efficient)', description: 'Best for quick drafts and brainstorming' },
@@ -99,13 +128,89 @@ export default function Home() {
     'storytelling'
   ];
 
-  const addToHistory = (item: Omit<HistoryItem, 'id' | 'timestamp'>) => {
-    const newItem: HistoryItem = {
-      ...item,
+  const getCurrentThread = () => {
+    return threads.find(t => t.id === currentThreadId) || null;
+  };
+
+  const createNewThread = () => {
+    const newThread: Thread = {
+      id: Date.now().toString(),
+      title: 'New Essay Thread',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      messages: [],
+      isActive: true
+    };
+    
+    // Deactivate all other threads
+    setThreads(prev => prev.map(t => ({ ...t, isActive: false })));
+    
+    // Add new thread
+    setThreads(prev => [newThread, ...prev]);
+    setCurrentThreadId(newThread.id);
+    setWorkflowStep('input');
+    setCurrentEssay('');
+    setOriginalPrompt('');
+  };
+
+  const addMessageToThread = (threadId: string, message: Omit<ThreadMessage, 'id' | 'timestamp'>) => {
+    const newMessage: ThreadMessage = {
+      ...message,
       id: Date.now().toString(),
       timestamp: new Date()
     };
-    setHistory(prev => [newItem, ...prev.slice(0, 49)]); // Keep last 50 items
+
+    setThreads(prev => prev.map(thread => {
+      if (thread.id === threadId) {
+        return {
+          ...thread,
+          updatedAt: new Date(),
+          messages: [...thread.messages, newMessage]
+        };
+      }
+      return thread;
+    }));
+  };
+
+  const switchThread = (threadId: string) => {
+    setThreads(prev => prev.map(t => ({ ...t, isActive: t.id === threadId })));
+    setCurrentThreadId(threadId);
+    
+    const thread = threads.find(t => t.id === threadId);
+    if (thread) {
+      // Load the last essay content from the thread
+      const lastEssayMessage = thread.messages
+        .filter(m => ['generated', 'edited'].includes(m.type))
+        .pop();
+      
+      if (lastEssayMessage) {
+        setCurrentEssay(lastEssayMessage.content);
+        setWorkflowStep('generated');
+      } else {
+        setCurrentEssay('');
+        setWorkflowStep('input');
+      }
+    }
+  };
+
+  const deleteThread = (threadId: string) => {
+    setThreads(prev => prev.filter(t => t.id !== threadId));
+    if (currentThreadId === threadId) {
+      const remainingThreads = threads.filter(t => t.id !== threadId);
+      if (remainingThreads.length > 0) {
+        switchThread(remainingThreads[0].id);
+      } else {
+        setCurrentThreadId(null);
+        setCurrentEssay('');
+        setWorkflowStep('input');
+      }
+    }
+  };
+
+  const updateThreadTitle = (threadId: string, title: string) => {
+    setThreads(prev => prev.map(thread => 
+      thread.id === threadId ? { ...thread, title } : thread
+    ));
   };
 
   const testApiKey = async () => {
@@ -152,6 +257,11 @@ export default function Home() {
       return;
     }
 
+    // Create new thread if none exists
+    if (!currentThreadId) {
+      createNewThread();
+    }
+
     setIsLoading(true);
     setError('');
 
@@ -171,17 +281,36 @@ export default function Home() {
       setOriginalPrompt(essayData.prompt);
       setWorkflowStep('generated');
       
-      // Add to history
-      addToHistory({
-        type: 'generated',
-        title: `Essay: ${essayData.prompt.substring(0, 50)}...`,
-        content: result.essay,
-        prompt: essayData.prompt,
-        model: selectedModel,
-        wordCount: essayData.wordCount,
-        tone: essayData.tone,
-        style: essayData.style
-      });
+      // Update thread title with prompt
+      if (currentThreadId) {
+        const title = essayData.prompt.substring(0, 50) + (essayData.prompt.length > 50 ? '...' : '');
+        updateThreadTitle(currentThreadId, title);
+        
+        // Add user input message
+        addMessageToThread(currentThreadId, {
+          type: 'user-input',
+          content: `Prompt: ${essayData.prompt}\nWord Count: ${essayData.wordCount}\nTone: ${essayData.tone}\nStyle: ${essayData.style}`,
+          metadata: {
+            prompt: essayData.prompt,
+            wordCount: essayData.wordCount,
+            tone: essayData.tone,
+            style: essayData.style
+          }
+        });
+        
+        // Add generated essay message
+        addMessageToThread(currentThreadId, {
+          type: 'generated',
+          content: result.essay,
+          model: selectedModel,
+          metadata: {
+            prompt: essayData.prompt,
+            wordCount: essayData.wordCount,
+            tone: essayData.tone,
+            style: essayData.style
+          }
+        });
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to generate essay');
     } finally {
@@ -200,8 +329,8 @@ export default function Home() {
       return;
     }
 
-    if (!editInstructions.trim()) {
-      setError('Please provide editing instructions');
+    if (!currentThreadId) {
+      setError('No active thread');
       return;
     }
 
@@ -209,38 +338,33 @@ export default function Home() {
     setError('');
 
     try {
-      const response = await fetch('/api/edit-essay', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          essay: currentEssay,
-          instructions: editInstructions,
-          model: selectedModel,
-          maxTokens,
-          apiKey,
-          personalDetails: personalDetails.trim() || undefined
-        }),
+      const result = await generateEssay({
+        prompt: `Edit the following essay based on these instructions: ${editInstructions}\n\nOriginal essay:\n${currentEssay}`,
+        wordCount: essayData.wordCount,
+        tone: essayData.tone,
+        style: essayData.style,
+        model: selectedModel,
+        maxTokens,
+        apiKey,
+        personalDetails: personalDetails.trim() || undefined
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
-        setCurrentEssay(result.editedEssay);
-        setWorkflowStep('editing');
-        
-        // Add to history
-        addToHistory({
-          type: 'edited',
-          title: `Edited: ${editInstructions.substring(0, 30)}...`,
-          content: result.editedEssay,
+      setCurrentEssay(result.essay);
+      setWorkflowStep('editing');
+      
+      // Add edit message to thread
+      addMessageToThread(currentThreadId, {
+        type: 'edited',
+        content: result.essay,
+        model: selectedModel,
+        metadata: {
+          editInstructions,
           prompt: originalPrompt,
-          model: selectedModel
-        });
-      } else {
-        setError(result.error || 'Failed to edit essay');
-      }
+          wordCount: essayData.wordCount,
+          tone: essayData.tone,
+          style: essayData.style
+        }
+      });
     } catch (err: any) {
       setError(err.message || 'Failed to edit essay');
     } finally {
@@ -259,6 +383,11 @@ export default function Home() {
       return;
     }
 
+    if (!currentThreadId) {
+      setError('No active thread');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 
@@ -268,19 +397,24 @@ export default function Home() {
         prompt: originalPrompt,
         model: selectedModel,
         maxTokens,
-        apiKey,
-        personalDetails: personalDetails.trim() || undefined
+        apiKey
       });
 
       setWorkflowStep('analysis');
       
-      // Add to history
-      addToHistory({
+      // Add analysis message to thread
+      addMessageToThread(currentThreadId, {
         type: 'analyzed',
-        title: 'Essay Analysis',
         content: result.analysis,
-        prompt: originalPrompt,
-        model: selectedModel
+        model: selectedModel,
+        metadata: {
+          analysis: {
+            score: result.score,
+            strengths: result.strengths,
+            weaknesses: result.weaknesses,
+            suggestions: result.suggestions
+          }
+        }
       });
     } catch (err: any) {
       setError(err.message || 'Failed to analyze essay');
@@ -291,6 +425,8 @@ export default function Home() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    setError('Copied to clipboard!');
+    setTimeout(() => setError(''), 2000);
   };
 
   const downloadEssay = (text: string, filename: string) => {
@@ -303,19 +439,6 @@ export default function Home() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
-
-  const loadFromHistory = (item: HistoryItem) => {
-    setCurrentEssay(item.content);
-    setOriginalPrompt(item.prompt || '');
-    if (item.type === 'generated') {
-      setWorkflowStep('generated');
-    } else if (item.type === 'edited') {
-      setWorkflowStep('editing');
-    } else {
-      setWorkflowStep('analysis');
-    }
-    setShowHistory(false);
   };
 
   const formatDate = (date: Date) => {
@@ -340,19 +463,21 @@ export default function Home() {
     return order[workflowStep] > order[step] ? 'completed' : '';
   };
 
+  const currentThread = getCurrentThread();
+
   return (
     <div className="container">
       {/* Header */}
       <header className="header">
         <div className="header-content">
           <h1>🎓 CollegeEssayAI</h1>
-          <p>Complete essay workflow: Generate → Edit → Analyze → Perfect</p>
+          <p>Thread-based essay workflow: Generate → Edit → Analyze → Perfect</p>
           <div className="header-badges">
             <div className="badge">
               <i>✨</i> AI-Powered
             </div>
             <div className="badge">
-              <i>🎯</i> One Workflow
+              <i>🧵</i> Thread-Based
             </div>
             <div className="badge">
               <i>⚡</i> Instant Results
@@ -447,7 +572,7 @@ export default function Home() {
 
         <div className="setting-group">
           <button
-            onClick={() => setShowHistory(!showHistory)}
+            onClick={() => setShowThreads(!showThreads)}
             style={{
               padding: '12px 20px',
               background: 'var(--secondary-gradient)',
@@ -460,13 +585,143 @@ export default function Home() {
               width: '100%'
             }}
           >
-            <i>📚</i> {showHistory ? 'Hide' : 'Show'} History ({history.length})
+            <i>🧵</i> {showThreads ? 'Hide' : 'Show'} Threads ({threads.length})
+          </button>
+          <button
+            onClick={createNewThread}
+            style={{
+              padding: '8px 16px',
+              background: 'var(--accent-gradient)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: '600',
+              width: '100%',
+              marginTop: '8px'
+            }}
+          >
+            <i>➕</i> New Thread
           </button>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="main-content">
+        {/* Thread Panel */}
+        {showThreads && (
+          <div className="thread-panel">
+            <h3><i>🧵</i> Essay Threads</h3>
+            <div className="thread-list">
+              {threads.length === 0 ? (
+                <div className="empty-threads">
+                  <p>No threads yet. Start by creating your first essay thread!</p>
+                </div>
+              ) : (
+                threads.map((thread) => (
+                  <div 
+                    key={thread.id} 
+                    className={`thread-item ${thread.id === currentThreadId ? 'active' : ''}`}
+                    onClick={() => switchThread(thread.id)}
+                  >
+                    <div className="thread-item-header">
+                      <div className="thread-item-info">
+                        <h4>{thread.title}</h4>
+                        <div className="thread-item-meta">
+                          <span className="thread-date">{formatDate(thread.updatedAt)}</span>
+                          <span className="thread-messages-count">{thread.messages.length} messages</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteThread(thread.id);
+                        }}
+                        className="delete-thread-btn"
+                        title="Delete thread"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                    <div className="thread-item-preview">
+                      {thread.messages.length > 0 ? 
+                        thread.messages[thread.messages.length - 1].content.substring(0, 100) + '...' :
+                        'No messages yet'
+                      }
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Current Thread Messages */}
+        {currentThread && (
+          <div className="thread-messages">
+            <h3><i>💬</i> {currentThread.title}</h3>
+            <div className="messages-container">
+              {currentThread.messages.map((message) => (
+                <div key={message.id} className={`message ${message.type}`}>
+                  <div className="message-header">
+                    <span className="message-type">
+                      {message.type === 'user-input' ? '👤 Input' :
+                       message.type === 'generated' ? '✍️ Generated' :
+                       message.type === 'edited' ? '✏️ Edited' :
+                       message.type === 'analyzed' ? '📊 Analyzed' : '💬 System'}
+                    </span>
+                    <span className="message-time">{formatDate(message.timestamp)}</span>
+                    {message.model && <span className="message-model">{message.model}</span>}
+                  </div>
+                  <div className="message-content">
+                    {message.type === 'analyzed' ? (
+                      <div className="analysis-content">
+                        <div className="analysis-score">
+                          <strong>Overall Score: {message.metadata?.analysis?.score}/10</strong>
+                        </div>
+                        <div className="analysis-sections">
+                          <div className="analysis-section">
+                            <h5>Strengths:</h5>
+                            <ul>
+                              {message.metadata?.analysis?.strengths?.map((strength, i) => (
+                                <li key={i}>{strength}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div className="analysis-section">
+                            <h5>Areas for Improvement:</h5>
+                            <ul>
+                              {message.metadata?.analysis?.weaknesses?.map((weakness, i) => (
+                                <li key={i}>{weakness}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div className="analysis-section">
+                            <h5>Suggestions:</h5>
+                            <ul>
+                              {message.metadata?.analysis?.suggestions?.map((suggestion, i) => (
+                                <li key={i}>{suggestion}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                        <div className="analysis-text">
+                          {message.content}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="essay-content">
+                        {message.content}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Workflow Progress */}
         <div className="workflow-progress">
           <div className={`workflow-step ${getStepStatus('input')}`}> 
@@ -486,41 +741,6 @@ export default function Home() {
             <div className="step-label">Analyze</div>
           </div>
         </div>
-
-        {/* History Panel */}
-        {showHistory && (
-          <div className="history-panel">
-            <h3><i>📚</i> Essay History</h3>
-            <div className="history-list">
-              {history.length === 0 ? (
-                <div className="empty-history">
-                  <p>No essays yet. Start by generating your first essay!</p>
-                </div>
-              ) : (
-                history.map((item) => (
-                  <div key={item.id} className="history-item" onClick={() => loadFromHistory(item)}>
-                    <div className="history-item-header">
-                      <div className="history-item-info">
-                        <h4>{item.title}</h4>
-                        <div className="history-item-meta">
-                          <span className={`history-type ${item.type}`}>
-                            {item.type === 'generated' ? '✍️ Generated' : 
-                             item.type === 'edited' ? '✏️ Edited' : '📊 Analyzed'}
-                          </span>
-                          <span className="history-date">{formatDate(item.timestamp)}</span>
-                          <span className="history-model">{item.model}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="history-item-preview">
-                      {item.content.substring(0, 100)}...
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Input Step */}
         {workflowStep === 'input' && (
