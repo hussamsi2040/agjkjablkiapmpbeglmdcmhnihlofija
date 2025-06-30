@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     // Test with a simple completion
     const completion = await openai.chat.completions.create({
-      model: 'o4-mini',
+      model: 'openai/o4-mini',
       messages: [
         {
           role: 'user',

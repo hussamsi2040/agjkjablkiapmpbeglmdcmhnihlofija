@@ -17,7 +17,7 @@ async function testApiKey() {
     console.log('🔑 Testing OpenRouter API key...');
     
     const completion = await openai.chat.completions.create({
-      model: "o4-mini", // Using a free model
+      model: "openai/o4-mini", // Using a free model
       messages: [
         { role: "user", content: "Say 'Hello! API key is working correctly.'" }
       ],

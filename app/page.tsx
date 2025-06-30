@@ -19,7 +19,7 @@ interface AnalysisData {
 export default function Home() {
   const [activeTab, setActiveTab] = useState('generate');
   const [apiKey, setApiKey] = useState('');
-  const [selectedModel, setSelectedModel] = useState('o4-mini');
+  const [selectedModel, setSelectedModel] = useState('openai/o4-mini');
   const [maxTokens, setMaxTokens] = useState(2000);
   const [isLoading, setIsLoading] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -44,7 +44,7 @@ export default function Home() {
   const [analysis, setAnalysis] = useState('');
 
   const models = [
-    { value: 'o4-mini', label: 'O4 Mini (Fast & Efficient)', description: 'Best for quick drafts and brainstorming' },
+    { value: 'openai/o4-mini', label: 'O4 Mini (Fast & Efficient)', description: 'Best for quick drafts and brainstorming' },
     { value: 'openai/gpt-4o-mini', label: 'GPT-4o Mini (Balanced)', description: 'Great balance of speed and quality' },
     { value: 'openai/gpt-4o', label: 'GPT-4o (Premium)', description: 'Highest quality for final drafts' },
     { value: 'anthropic/claude-3-5-sonnet', label: 'Claude 3.5 Sonnet', description: 'Excellent for creative writing' },
