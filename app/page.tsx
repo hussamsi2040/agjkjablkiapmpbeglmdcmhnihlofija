@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { generateEssay } from './api/generate-essay';
 import { analyzeEssay } from './api/analyze-essay';
-import { analyzeImage } from './api/analyze-image';
 
 interface EssayData {
   prompt: string;
@@ -15,14 +14,6 @@ interface EssayData {
 interface AnalysisData {
   essay: string;
   prompt: string;
-}
-
-interface ImageData {
-  imageUrl: string;
-  prompt: string;
-  wordCount: number;
-  tone: string;
-  style: string;
 }
 
 export default function Home() {
@@ -52,19 +43,6 @@ export default function Home() {
   });
   const [analysis, setAnalysis] = useState('');
 
-  // Image analysis tab state
-  const [imageData, setImageData] = useState<ImageData>({
-    imageUrl: '',
-    prompt: '',
-    wordCount: 650,
-    tone: 'professional',
-    style: 'personal narrative'
-  });
-  const [imagePersonalDetails, setImagePersonalDetails] = useState('');
-  const [imageAnalysis, setImageAnalysis] = useState('');
-  const [imageEssay, setImageEssay] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const models = [
     { value: 'o4-mini', label: 'O4 Mini (Fast & Efficient)', description: 'Best for quick drafts and brainstorming' },
     { value: 'openai/gpt-4o-mini', label: 'GPT-4o Mini (Balanced)', description: 'Great balance of speed and quality' },
@@ -93,25 +71,6 @@ export default function Home() {
     'creative',
     'academic',
     'storytelling'
-  ];
-
-  const sampleImages = [
-    {
-      url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg',
-      description: 'Nature Boardwalk - University of Wisconsin-Madison'
-    },
-    {
-      url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/University_of_California%2C_Berkeley_campus_from_UC_Berkeley_Campanile.jpg/2560px-University_of_California%2C_Berkeley_campus_from_UC_Berkeley_Campanile.jpg',
-      description: 'UC Berkeley Campus'
-    },
-    {
-      url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Harvard_University_commencement_2013.jpg/2560px-Harvard_University_commencement_2013.jpg',
-      description: 'Harvard University Commencement'
-    },
-    {
-      url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Stanford_University_entrance_with_flowers.jpg/2560px-Stanford_University_entrance_with_flowers.jpg',
-      description: 'Stanford University Entrance'
-    }
   ];
 
   const testApiKey = async () => {
@@ -215,56 +174,6 @@ export default function Home() {
     }
   };
 
-  const handleImageAnalysis = async () => {
-    if (!apiKey.trim()) {
-      setError('Please enter your OpenRouter API key');
-      return;
-    }
-
-    if (!imageData.imageUrl.trim()) {
-      setError('Please enter an image URL or upload an image');
-      return;
-    }
-
-    setIsLoading(true);
-    setError('');
-    setImageAnalysis('');
-    setImageEssay('');
-
-    try {
-      const result = await analyzeImage({
-        imageUrl: imageData.imageUrl,
-        prompt: imageData.prompt,
-        wordCount: imageData.wordCount,
-        tone: imageData.tone,
-        style: imageData.style,
-        model: selectedModel,
-        maxTokens,
-        apiKey,
-        personalDetails: imagePersonalDetails.trim() || undefined
-      });
-
-      setImageAnalysis(result.analysis);
-      setImageEssay(result.essay);
-    } catch (err: any) {
-      setError(err.message || 'Failed to analyze image');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setImageData({ ...imageData, imageUrl: result });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
@@ -294,9 +203,6 @@ export default function Home() {
             </div>
             <div className="badge">
               <i>🎯</i> College Focused
-            </div>
-            <div className="badge">
-              <i>🖼️</i> Image Analysis
             </div>
             <div className="badge">
               <i>⚡</i> Instant Results
@@ -337,8 +243,7 @@ export default function Home() {
               borderRadius: '6px',
               cursor: 'pointer',
               fontSize: '12px',
-              fontWeight: '600',
-              transition: 'all 0.3s ease'
+              fontWeight: '600'
             }}
           >
             {isLoading ? 'Testing...' : '🔑 Test API Key'}
@@ -396,8 +301,8 @@ export default function Home() {
           </h4>
           <ul>
             <li>Use specific prompts for better results</li>
+            <li>Include personal details for authenticity</li>
             <li>Try different tones and styles</li>
-            <li>Upload images for visual essay prompts</li>
             <li>Review and edit generated content</li>
             <li>Get your API key from OpenRouter</li>
           </ul>
@@ -419,12 +324,6 @@ export default function Home() {
             onClick={() => setActiveTab('analyze')}
           >
             <i>📊</i> Analyze Essay
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'image' ? 'active' : ''}`}
-            onClick={() => setActiveTab('image')}
-          >
-            <i>🖼️</i> Image Analysis
           </button>
           <button
             className={`tab-btn ${activeTab === 'help' ? 'active' : ''}`}
@@ -669,218 +568,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* Image Analysis Tab */}
-        <div className={`tab-content ${activeTab === 'image' ? 'active' : ''}`}>
-          <div className="form-grid">
-            <div className="form-section">
-              <h3>
-                <i>🖼️</i> Image Input
-              </h3>
-              <div className="form-group">
-                <label htmlFor="imageUrl">Image URL</label>
-                <input
-                  type="url"
-                  id="imageUrl"
-                  value={imageData.imageUrl}
-                  onChange={(e) => setImageData({ ...imageData, imageUrl: e.target.value })}
-                  placeholder="https://example.com/image.jpg"
-                />
-                <small>Enter a direct image URL or upload an image below</small>
-              </div>
-
-              <div className="form-group">
-                <label>Upload Image</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  ref={fileInputRef}
-                  style={{ padding: '10px', border: '2px dashed var(--border-color)', borderRadius: '8px', width: '100%' }}
-                />
-                <small>Supported formats: JPG, PNG, GIF (max 20MB)</small>
-              </div>
-
-              {imageData.imageUrl && (
-                <div className="form-group">
-                  <label>Preview</label>
-                  <div style={{ textAlign: 'center', marginTop: '10px' }}>
-                    <img 
-                      src={imageData.imageUrl} 
-                      alt="Preview" 
-                      style={{ 
-                        maxWidth: '100%', 
-                        maxHeight: '200px', 
-                        borderRadius: '8px',
-                        border: '2px solid var(--border-color)'
-                      }} 
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="form-group">
-                <label htmlFor="imagePrompt">Additional Context (Optional)</label>
-                <textarea
-                  id="imagePrompt"
-                  value={imageData.prompt}
-                  onChange={(e) => setImageData({ ...imageData, prompt: e.target.value })}
-                  placeholder="Describe what you want the AI to focus on in this image, or provide context for your essay..."
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="imagePersonalDetails">Personal Details (Optional)</label>
-                <textarea
-                  id="imagePersonalDetails"
-                  value={imagePersonalDetails}
-                  onChange={(e) => setImagePersonalDetails(e.target.value)}
-                  placeholder="Include specific details about yourself to incorporate into the essay based on this image..."
-                />
-                <small>Examples: "I'm passionate about environmental science and have volunteered at local parks. I want to study sustainability in college."</small>
-              </div>
-            </div>
-
-            <div className="form-section">
-              <h3>
-                <i>⚙️</i> Essay Settings
-              </h3>
-              <div className="form-group">
-                <label htmlFor="imageWordCount">Target Word Count</label>
-                <select
-                  id="imageWordCount"
-                  value={imageData.wordCount}
-                  onChange={(e) => setImageData({ ...imageData, wordCount: Number(e.target.value) })}
-                >
-                  <option value={250}>250 words (Short)</option>
-                  <option value={500}>500 words (Medium)</option>
-                  <option value={650}>650 words (Common App)</option>
-                  <option value={1000}>1000 words (Long)</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="imageTone">Writing Tone</label>
-                <select
-                  id="imageTone"
-                  value={imageData.tone}
-                  onChange={(e) => setImageData({ ...imageData, tone: e.target.value })}
-                >
-                  {tones.map((tone) => (
-                    <option key={tone} value={tone}>
-                      {tone.charAt(0).toUpperCase() + tone.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="imageStyle">Writing Style</label>
-                <select
-                  id="imageStyle"
-                  value={imageData.style}
-                  onChange={(e) => setImageData({ ...imageData, style: e.target.value })}
-                >
-                  {styles.map((style) => (
-                    <option key={style} value={style}>
-                      {style.charAt(0).toUpperCase() + style.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Sample Images</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', marginTop: '10px' }}>
-                  {sampleImages.map((img, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setImageData({ ...imageData, imageUrl: img.url })}
-                      style={{
-                        padding: '0',
-                        border: '2px solid var(--border-color)',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        background: 'none',
-                        transition: 'all 0.3s ease'
-                      }}
-                    >
-                      <img 
-                        src={img.url} 
-                        alt={img.description}
-                        style={{ 
-                          width: '100%', 
-                          height: '100px', 
-                          objectFit: 'cover',
-                          display: 'block'
-                        }} 
-                      />
-                      <div style={{ 
-                        padding: '8px', 
-                        fontSize: '11px', 
-                        color: 'var(--text-secondary)',
-                        textAlign: 'left'
-                      }}>
-                        {img.description}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="action-section">
-            <button
-              className="btn btn-primary"
-              onClick={handleImageAnalysis}
-              disabled={isLoading}
-            >
-              <i>🔍</i> Analyze Image & Generate Essay
-            </button>
-            <div className="btn-info">
-              <i>⏱️</i> Image analysis may take 20-60 seconds
-            </div>
-          </div>
-
-          {(imageAnalysis || imageEssay) && (
-            <div className="result-section">
-              {imageAnalysis && (
-                <>
-                  <h3>
-                    <i>📊</i> Image Analysis
-                  </h3>
-                  <div className="grade-box">{imageAnalysis}</div>
-                </>
-              )}
-              
-              {imageEssay && (
-                <>
-                  <h3>
-                    <i>✨</i> Generated Essay
-                  </h3>
-                  <div className="essay-box">{imageEssay}</div>
-                </>
-              )}
-              
-              <div className="result-actions">
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => copyToClipboard(imageAnalysis + '\n\n' + imageEssay)}
-                >
-                  <i>📋</i> Copy All
-                </button>
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => downloadEssay(imageAnalysis + '\n\n' + imageEssay, 'image-essay.txt')}
-                >
-                  <i>💾</i> Download
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Help Tab */}
         <div className={`tab-content ${activeTab === 'help' ? 'active' : ''}`}>
           <div className="help-content">
@@ -902,29 +589,6 @@ export default function Home() {
               <li>Navigate to the API Keys section</li>
               <li>Create a new API key</li>
               <li>Copy and paste it into the app</li>
-              <li>Click "Test API Key" to verify it works</li>
-            </ul>
-
-            <h4>
-              <i>🔧</i> API Key Troubleshooting
-            </h4>
-            <ul>
-              <li><strong>Invalid API Key:</strong> Make sure your key starts with "sk-or-v1-"</li>
-              <li><strong>Rate Limit Error:</strong> Wait a few minutes and try again</li>
-              <li><strong>Network Error:</strong> Check your internet connection</li>
-              <li><strong>Account Issues:</strong> Verify your OpenRouter account is active</li>
-              <li><strong>Free Tier Limits:</strong> Check your usage on OpenRouter dashboard</li>
-            </ul>
-
-            <h4>
-              <i>🖼️</i> Image Analysis Features
-            </h4>
-            <ul>
-              <li><strong>Visual Essay Prompts:</strong> Use images to inspire essay topics</li>
-              <li><strong>Personal Photos:</strong> Analyze photos of your experiences</li>
-              <li><strong>Campus Images:</strong> Write about specific universities</li>
-              <li><strong>Event Photos:</strong> Describe meaningful moments</li>
-              <li><strong>Art & Creativity:</strong> Use artwork to spark ideas</li>
             </ul>
 
             <h4>
@@ -960,14 +624,14 @@ export default function Home() {
             </ul>
 
             <h4>
-              <i>❓</i> Still Having Issues?
+              <i>❓</i> Troubleshooting
             </h4>
             <ul>
-              <li>Check <a href="https://status.openrouter.ai" target="_blank" rel="noopener noreferrer">OpenRouter Status</a></li>
-              <li>Contact <a href="https://openrouter.ai/support" target="_blank" rel="noopener noreferrer">OpenRouter Support</a></li>
-              <li>Try a different browser or clear cache</li>
-              <li>Check your browser console for errors (F12)</li>
-              <li>Ensure your API key is copied correctly</li>
+              <li>Ensure your API key is correct and active</li>
+              <li>Check your internet connection</li>
+              <li>Try a different AI model if one fails</li>
+              <li>Reduce max tokens if you get timeout errors</li>
+              <li>Make sure your prompt is clear and specific</li>
             </ul>
           </div>
         </div>
