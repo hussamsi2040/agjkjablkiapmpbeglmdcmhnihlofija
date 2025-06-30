@@ -364,7 +364,7 @@ export default function Home() {
                 <div className="char-counter">
                   {personalDetails.length} characters
                 </div>
-                <small>Examples: "I'm a first-generation college student from a small town in Texas. I love robotics and have won several science competitions. I want to study engineering to help solve environmental problems."</small>
+                <small>Examples: &quot;I&apos;m a first-generation college student from a small town in Texas. I love robotics and have won several science competitions. I want to study engineering to help solve environmental problems.&quot;</small>
               </div>
 
               <div className="form-group">
