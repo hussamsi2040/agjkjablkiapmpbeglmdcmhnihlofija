@@ -16,6 +16,19 @@ interface AnalysisData {
   prompt: string;
 }
 
+interface HistoryItem {
+  id: string;
+  type: 'generated' | 'analyzed';
+  title: string;
+  content: string;
+  prompt?: string;
+  timestamp: Date;
+  model: string;
+  wordCount?: number;
+  tone?: string;
+  style?: string;
+}
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState('generate');
   const [apiKey, setApiKey] = useState('');
@@ -42,6 +55,34 @@ export default function Home() {
     prompt: ''
   });
   const [analysis, setAnalysis] = useState('');
+
+  // History and editing state
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingEssay, setEditingEssay] = useState('');
+  const [editInstructions, setEditInstructions] = useState('');
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<HistoryItem | null>(null);
+
+  // Load history from localStorage on component mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('essayHistory');
+    if (savedHistory) {
+      try {
+        const parsedHistory = JSON.parse(savedHistory).map((item: any) => ({
+          ...item,
+          timestamp: new Date(item.timestamp)
+        }));
+        setHistory(parsedHistory);
+      } catch (error) {
+        console.error('Error loading history:', error);
+      }
+    }
+  }, []);
+
+  // Save history to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('essayHistory', JSON.stringify(history));
+  }, [history]);
 
   const models = [
     { value: 'openai/o4-mini', label: 'O4 Mini (Fast & Efficient)', description: 'Best for quick drafts and brainstorming' },
@@ -72,6 +113,24 @@ export default function Home() {
     'academic',
     'storytelling'
   ];
+
+  const addToHistory = (item: Omit<HistoryItem, 'id' | 'timestamp'>) => {
+    const newItem: HistoryItem = {
+      ...item,
+      id: Date.now().toString(),
+      timestamp: new Date()
+    };
+    setHistory(prev => [newItem, ...prev.slice(0, 49)]); // Keep last 50 items
+  };
+
+  const deleteFromHistory = (id: string) => {
+    setHistory(prev => prev.filter(item => item.id !== id));
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
+    localStorage.removeItem('essayHistory');
+  };
 
   const testApiKey = async () => {
     if (!apiKey.trim()) {
@@ -134,6 +193,18 @@ export default function Home() {
       });
 
       setGeneratedEssay(result.essay);
+      
+      // Add to history
+      addToHistory({
+        type: 'generated',
+        title: `Essay: ${essayData.prompt.substring(0, 50)}...`,
+        content: result.essay,
+        prompt: essayData.prompt,
+        model: selectedModel,
+        wordCount: essayData.wordCount,
+        tone: essayData.tone,
+        style: essayData.style
+      });
     } catch (err: any) {
       setError(err.message || 'Failed to generate essay');
     } finally {
@@ -167,10 +238,104 @@ export default function Home() {
       });
 
       setAnalysis(result.analysis);
+      
+      // Add to history
+      addToHistory({
+        type: 'analyzed',
+        title: `Analysis: ${analysisData.essay.substring(0, 50)}...`,
+        content: result.analysis,
+        prompt: analysisData.prompt,
+        model: selectedModel
+      });
     } catch (err: any) {
       setError(err.message || 'Failed to analyze essay');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleEditEssay = async () => {
+    if (!apiKey.trim()) {
+      setError('Please enter your OpenRouter API key');
+      return;
+    }
+
+    if (!editingEssay.trim()) {
+      setError('Please enter an essay to edit');
+      return;
+    }
+
+    if (!editInstructions.trim()) {
+      setError('Please enter editing instructions');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const result = await fetch('/api/edit-essay', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          essay: editingEssay,
+          instructions: editInstructions,
+          model: selectedModel,
+          maxTokens,
+          apiKey,
+          personalDetails: personalDetails.trim() || undefined
+        }),
+      });
+
+      const data = await result.json();
+
+      if (result.ok) {
+        setEditingEssay(data.editedEssay);
+        
+        // Add to history
+        addToHistory({
+          type: 'generated',
+          title: `Edited: ${editInstructions.substring(0, 50)}...`,
+          content: data.editedEssay,
+          prompt: editInstructions,
+          model: selectedModel
+        });
+        
+        setEditInstructions('');
+      } else {
+        setError(data.error || 'Failed to edit essay');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to edit essay');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadFromHistory = (item: HistoryItem) => {
+    if (item.type === 'generated') {
+      setGeneratedEssay(item.content);
+      setActiveTab('generate');
+      if (item.prompt) {
+        setEssayData(prev => ({
+          ...prev,
+          prompt: item.prompt,
+          wordCount: item.wordCount || 650,
+          tone: item.tone || 'professional',
+          style: item.style || 'personal narrative'
+        }));
+      }
+    } else {
+      setAnalysis(item.content);
+      setActiveTab('analyze');
+      if (item.prompt) {
+        setAnalysisData(prev => ({
+          ...prev,
+          prompt: item.prompt
+        }));
+      }
     }
   };
 
@@ -188,6 +353,15 @@ export default function Home() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
   };
 
   return (
@@ -324,6 +498,18 @@ export default function Home() {
             onClick={() => setActiveTab('analyze')}
           >
             <i>📊</i> Analyze Essay
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'edit' ? 'active' : ''}`}
+            onClick={() => setActiveTab('edit')}
+          >
+            <i>✏️</i> Edit with AI
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+            onClick={() => setActiveTab('history')}
+          >
+            <i>📚</i> History
           </button>
           <button
             className={`tab-btn ${activeTab === 'help' ? 'active' : ''}`}
@@ -480,6 +666,15 @@ export default function Home() {
                 >
                   <i>💾</i> Download Essay
                 </button>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setEditingEssay(generatedEssay);
+                    setActiveTab('edit');
+                  }}
+                >
+                  <i>✏️</i> Edit with AI
+                </button>
               </div>
             </div>
           )}
@@ -568,6 +763,195 @@ export default function Home() {
           )}
         </div>
 
+        {/* Edit with AI Tab */}
+        <div className={`tab-content ${activeTab === 'edit' ? 'active' : ''}`}>
+          <div className="form-grid">
+            <div className="form-section">
+              <h3>
+                <i>✏️</i> Edit Your Essay
+              </h3>
+              <div className="form-group">
+                <label htmlFor="editingEssay">Essay to Edit</label>
+                <textarea
+                  id="editingEssay"
+                  value={editingEssay}
+                  onChange={(e) => setEditingEssay(e.target.value)}
+                  placeholder="Paste your essay here to edit with AI assistance..."
+                />
+                <div className="char-counter">
+                  {editingEssay.length} characters
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="editInstructions">Editing Instructions</label>
+                <textarea
+                  id="editInstructions"
+                  value={editInstructions}
+                  onChange={(e) => setEditInstructions(e.target.value)}
+                  placeholder="Tell AI what changes you want: 'Make it more personal', 'Add more details about my robotics experience', 'Improve the conclusion', 'Make it more concise', etc."
+                />
+                <div className="char-counter">
+                  {editInstructions.length} characters
+                </div>
+              </div>
+            </div>
+
+            <div className="form-section">
+              <h3>
+                <i>💡</i> Editing Examples
+              </h3>
+              <div className="form-group">
+                <label>Common Editing Instructions</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {[
+                    'Make the essay more personal and authentic',
+                    'Add more specific details and examples',
+                    'Improve the opening paragraph to be more engaging',
+                    'Strengthen the conclusion with better reflection',
+                    'Make the writing more concise and focused',
+                    'Add more emotional depth and vulnerability',
+                    'Improve the flow and transitions between paragraphs',
+                    'Make it more specific to my target college/major'
+                  ].map((instruction, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setEditInstructions(instruction)}
+                      style={{
+                        padding: '10px',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '8px',
+                        background: 'var(--bg-primary)',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        fontSize: '13px',
+                        lineHeight: '1.4'
+                      }}
+                    >
+                      {instruction}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="action-section">
+            <button
+              className="btn btn-primary"
+              onClick={handleEditEssay}
+              disabled={isLoading}
+            >
+              <i>✨</i> Edit with AI
+            </button>
+            <div className="btn-info">
+              <i>⏱️</i> Editing typically takes 15-30 seconds
+            </div>
+          </div>
+
+          {editingEssay && editInstructions && (
+            <div className="result-section">
+              <h3>
+                <i>✏️</i> Edited Essay
+              </h3>
+              <div className="essay-box">{editingEssay}</div>
+              <div className="result-actions">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => copyToClipboard(editingEssay)}
+                >
+                  <i>📋</i> Copy to Clipboard
+                </button>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => downloadEssay(editingEssay, 'edited-essay.txt')}
+                >
+                  <i>💾</i> Download Essay
+                </button>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setGeneratedEssay(editingEssay);
+                    setActiveTab('generate');
+                  }}
+                >
+                  <i>🔄</i> Continue Editing
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* History Tab */}
+        <div className={`tab-content ${activeTab === 'history' ? 'active' : ''}`}>
+          <div className="history-header">
+            <h3>
+              <i>📚</i> Essay History
+            </h3>
+            <div className="history-actions">
+              <button
+                className="btn btn-secondary"
+                onClick={clearHistory}
+                disabled={history.length === 0}
+              >
+                <i>🗑️</i> Clear All
+              </button>
+            </div>
+          </div>
+
+          {history.length === 0 ? (
+            <div className="empty-history">
+              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-light)' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '20px' }}>📚</div>
+                <h4>No History Yet</h4>
+                <p>Your generated essays and analyses will appear here for easy access.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="history-list">
+              {history.map((item) => (
+                <div key={item.id} className="history-item">
+                  <div className="history-item-header">
+                    <div className="history-item-info">
+                      <h4>{item.title}</h4>
+                      <div className="history-item-meta">
+                        <span className={`history-type ${item.type}`}>
+                          {item.type === 'generated' ? '✍️ Generated' : '📊 Analyzed'}
+                        </span>
+                        <span className="history-date">{formatDate(item.timestamp)}</span>
+                        <span className="history-model">{item.model}</span>
+                      </div>
+                    </div>
+                    <div className="history-item-actions">
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => loadFromHistory(item)}
+                      >
+                        <i>📖</i> Load
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => copyToClipboard(item.content)}
+                      >
+                        <i>📋</i> Copy
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => deleteFromHistory(item.id)}
+                      >
+                        <i>🗑️</i> Delete
+                      </button>
+                    </div>
+                  </div>
+                  <div className="history-item-preview">
+                    {item.content.substring(0, 200)}...
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Help Tab */}
         <div className={`tab-content ${activeTab === 'help' ? 'active' : ''}`}>
           <div className="help-content">
@@ -600,6 +984,26 @@ export default function Home() {
               <li>Mention the college or program you&apos;re applying to</li>
               <li>Specify any particular requirements or constraints</li>
               <li>Always review and edit generated content</li>
+            </ul>
+
+            <h4>
+              <i>✏️</i> AI Editing Features
+            </h4>
+            <ul>
+              <li>Use specific editing instructions for better results</li>
+              <li>Try different approaches: &quot;make it more personal&quot;, &quot;add details&quot;, etc.</li>
+              <li>Iterate on your essays with multiple edits</li>
+              <li>Combine generated and edited content for best results</li>
+            </ul>
+
+            <h4>
+              <i>📚</i> History Features
+            </h4>
+            <ul>
+              <li>All your essays and analyses are automatically saved</li>
+              <li>Load previous work to continue editing</li>
+              <li>Compare different versions of your essays</li>
+              <li>Export your work anytime</li>
             </ul>
 
             <h4>
