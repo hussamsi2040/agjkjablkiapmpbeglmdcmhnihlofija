@@ -33,6 +33,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [error, setError] = useState('');
+  const [testResult, setTestResult] = useState('');
   
   // Generate tab state
   const [essayData, setEssayData] = useState<EssayData>({
@@ -41,6 +42,7 @@ export default function Home() {
     tone: 'professional',
     style: 'personal narrative'
   });
+  const [personalDetails, setPersonalDetails] = useState('');
   const [generatedEssay, setGeneratedEssay] = useState('');
   
   // Analyze tab state
@@ -58,6 +60,7 @@ export default function Home() {
     tone: 'professional',
     style: 'personal narrative'
   });
+  const [imagePersonalDetails, setImagePersonalDetails] = useState('');
   const [imageAnalysis, setImageAnalysis] = useState('');
   const [imageEssay, setImageEssay] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -111,6 +114,39 @@ export default function Home() {
     }
   ];
 
+  const testApiKey = async () => {
+    if (!apiKey.trim()) {
+      setError('Please enter your OpenRouter API key first');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+    setTestResult('');
+
+    try {
+      const response = await fetch('/api/test-api-key', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ apiKey }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setTestResult(`✅ ${result.message}\n\nResponse: ${result.response}`);
+      } else {
+        setError(`${result.error}\n\nDetails: ${result.details || 'No additional details available'}`);
+      }
+    } catch (err: any) {
+      setError(`Test failed: ${err.message || 'Network error'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleGenerateEssay = async () => {
     if (!apiKey.trim()) {
       setError('Please enter your OpenRouter API key');
@@ -134,7 +170,8 @@ export default function Home() {
         style: essayData.style,
         model: selectedModel,
         maxTokens,
-        apiKey
+        apiKey,
+        personalDetails: personalDetails.trim() || undefined
       });
 
       setGeneratedEssay(result.essay);
@@ -166,7 +203,8 @@ export default function Home() {
         prompt: analysisData.prompt,
         model: selectedModel,
         maxTokens,
-        apiKey
+        apiKey,
+        personalDetails: personalDetails.trim() || undefined
       });
 
       setAnalysis(result.analysis);
@@ -202,7 +240,8 @@ export default function Home() {
         style: imageData.style,
         model: selectedModel,
         maxTokens,
-        apiKey
+        apiKey,
+        personalDetails: imagePersonalDetails.trim() || undefined
       });
 
       setImageAnalysis(result.analysis);
@@ -286,6 +325,37 @@ export default function Home() {
               OpenRouter
             </a>
           </small>
+          <button
+            onClick={testApiKey}
+            disabled={isLoading || !apiKey.trim()}
+            style={{
+              marginTop: '10px',
+              padding: '8px 16px',
+              background: 'var(--accent-gradient)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: '600',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            {isLoading ? 'Testing...' : '🔑 Test API Key'}
+          </button>
+          {testResult && (
+            <div style={{
+              marginTop: '10px',
+              padding: '10px',
+              background: 'var(--success-gradient)',
+              color: 'white',
+              borderRadius: '6px',
+              fontSize: '12px',
+              whiteSpace: 'pre-wrap'
+            }}>
+              {testResult}
+            </div>
+          )}
         </div>
 
         <div className="setting-group">
@@ -382,6 +452,20 @@ export default function Home() {
                 <div className="char-counter">
                   {essayData.prompt.length} characters
                 </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="personalDetails">Personal Details (Optional)</label>
+                <textarea
+                  id="personalDetails"
+                  value={personalDetails}
+                  onChange={(e) => setPersonalDetails(e.target.value)}
+                  placeholder="Include specific details about yourself: background, experiences, achievements, interests, goals, etc. This will help make your essay more personal and authentic."
+                />
+                <div className="char-counter">
+                  {personalDetails.length} characters
+                </div>
+                <small>Examples: "I'm a first-generation college student from a small town in Texas. I love robotics and have won several science competitions. I want to study engineering to help solve environmental problems."</small>
               </div>
 
               <div className="form-group">
@@ -643,6 +727,17 @@ export default function Home() {
                   placeholder="Describe what you want the AI to focus on in this image, or provide context for your essay..."
                 />
               </div>
+
+              <div className="form-group">
+                <label htmlFor="imagePersonalDetails">Personal Details (Optional)</label>
+                <textarea
+                  id="imagePersonalDetails"
+                  value={imagePersonalDetails}
+                  onChange={(e) => setImagePersonalDetails(e.target.value)}
+                  placeholder="Include specific details about yourself to incorporate into the essay based on this image..."
+                />
+                <small>Examples: "I'm passionate about environmental science and have volunteered at local parks. I want to study sustainability in college."</small>
+              </div>
             </div>
 
             <div className="form-section">
@@ -807,6 +902,18 @@ export default function Home() {
               <li>Navigate to the API Keys section</li>
               <li>Create a new API key</li>
               <li>Copy and paste it into the app</li>
+              <li>Click "Test API Key" to verify it works</li>
+            </ul>
+
+            <h4>
+              <i>🔧</i> API Key Troubleshooting
+            </h4>
+            <ul>
+              <li><strong>Invalid API Key:</strong> Make sure your key starts with "sk-or-v1-"</li>
+              <li><strong>Rate Limit Error:</strong> Wait a few minutes and try again</li>
+              <li><strong>Network Error:</strong> Check your internet connection</li>
+              <li><strong>Account Issues:</strong> Verify your OpenRouter account is active</li>
+              <li><strong>Free Tier Limits:</strong> Check your usage on OpenRouter dashboard</li>
             </ul>
 
             <h4>
@@ -853,14 +960,14 @@ export default function Home() {
             </ul>
 
             <h4>
-              <i>❓</i> Troubleshooting
+              <i>❓</i> Still Having Issues?
             </h4>
             <ul>
-              <li>Ensure your API key is correct and active</li>
-              <li>Check your internet connection</li>
-              <li>Try a different AI model if one fails</li>
-              <li>Reduce max tokens if you get timeout errors</li>
-              <li>Make sure your prompt is clear and specific</li>
+              <li>Check <a href="https://status.openrouter.ai" target="_blank" rel="noopener noreferrer">OpenRouter Status</a></li>
+              <li>Contact <a href="https://openrouter.ai/support" target="_blank" rel="noopener noreferrer">OpenRouter Support</a></li>
+              <li>Try a different browser or clear cache</li>
+              <li>Check your browser console for errors (F12)</li>
+              <li>Ensure your API key is copied correctly</li>
             </ul>
           </div>
         </div>
@@ -900,7 +1007,7 @@ export default function Home() {
             <h3>
               <i>⚠️</i> Error
             </h3>
-            <p>{error}</p>
+            <p style={{ whiteSpace: 'pre-wrap' }}>{error}</p>
             <div className="modal-actions">
               <button className="btn btn-primary" onClick={() => setError('')}>
                 OK

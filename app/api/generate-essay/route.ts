@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { prompt, wordCount, tone, style, model, maxTokens, apiKey } = body;
+    const { prompt, wordCount, tone, style, model, maxTokens, apiKey, personalDetails } = body;
 
     // Validate required fields
     if (!apiKey) {
@@ -45,6 +45,8 @@ Key Guidelines:
 - End with reflection or insight
 - Ensure excellent grammar and flow
 
+${personalDetails ? `Personal Details to Incorporate: ${personalDetails}` : ''}
+
 Important: Write the essay directly without any meta-commentary or explanations. The response should be the essay itself.`;
 
     // Create the user prompt
@@ -57,7 +59,8 @@ Requirements:
 - Style: ${style}
 - Target length: ${wordCount} words
 - Focus on personal experience and growth
-- Be authentic and engaging`;
+- Be authentic and engaging
+${personalDetails ? `- Incorporate these personal details: ${personalDetails}` : ''}`;
 
     // Generate the essay
     const completion = await openai.chat.completions.create({

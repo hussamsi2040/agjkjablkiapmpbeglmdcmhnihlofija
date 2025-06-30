@@ -4,6 +4,7 @@ interface AnalyzeEssayParams {
   model: string;
   maxTokens: number;
   apiKey: string;
+  personalDetails?: string;
 }
 
 export async function analyzeEssay(params: AnalyzeEssayParams) {

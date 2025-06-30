@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { essay, prompt, model, maxTokens, apiKey } = body;
+    const { essay, prompt, model, maxTokens, apiKey, personalDetails } = body;
 
     // Validate required fields
     if (!apiKey) {
@@ -43,6 +43,7 @@ Provide your analysis in the following structured format:
 - Prompt Response: [How well does it address the prompt?]
 - Personal Voice: [Is the author's unique voice present?]
 - Authenticity: [Does it feel genuine and personal?]
+${personalDetails ? `- Personal Details Integration: [How well are personal details incorporated?]` : ''}
 
 **Writing Quality**
 - Grammar & Mechanics: [Assessment of technical writing]
@@ -67,6 +68,7 @@ Be constructive, specific, and encouraging. Focus on actionable feedback that wi
     const userPrompt = `Please analyze this college admission essay:
 
 ${prompt ? `Original Prompt: "${prompt}"` : 'No specific prompt provided'}
+${personalDetails ? `Personal Details to Consider: ${personalDetails}` : ''}
 
 Essay:
 "${essay}"

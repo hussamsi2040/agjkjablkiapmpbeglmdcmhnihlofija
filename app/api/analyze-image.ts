@@ -7,6 +7,7 @@ interface AnalyzeImageParams {
   model: string;
   maxTokens: number;
   apiKey: string;
+  personalDetails?: string;
 }
 
 export async function analyzeImage(params: AnalyzeImageParams) {

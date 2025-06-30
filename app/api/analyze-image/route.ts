@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { imageUrl, prompt, wordCount, tone, style, model, maxTokens, apiKey } = body;
+    const { imageUrl, prompt, wordCount, tone, style, model, maxTokens, apiKey, personalDetails } = body;
 
     // Validate required fields
     if (!apiKey) {
@@ -45,6 +45,7 @@ For the essay, create a ${tone} tone with ${style} style, targeting ${wordCount}
 - Authentic voice and storytelling
 - College admission relevance
 - Strong narrative structure
+${personalDetails ? `- Incorporate these personal details: ${personalDetails}` : ''}
 
 Important: Provide both analysis and essay in your response.`;
 
@@ -52,6 +53,7 @@ Important: Provide both analysis and essay in your response.`;
     const userPrompt = `Please analyze this image and create a college admission essay:
 
 ${prompt ? `Additional Context: ${prompt}` : ''}
+${personalDetails ? `Personal Details to Incorporate: ${personalDetails}` : ''}
 
 Requirements:
 - Tone: ${tone}
